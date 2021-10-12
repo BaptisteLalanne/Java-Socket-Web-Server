@@ -65,7 +65,7 @@ public class EchoServerMultiThreaded  {
 			System.out.println("Connexion from:" + clientSocket.getInetAddress() + " with port " + port);
 			ClientThread ct = new ClientThread(clientSocket);
 			ct.start();
-			output = "Server ready to connect";
+			output = "Server joined";
 		} catch (Exception e) {
             System.err.println("Error in EchoServer:" + e);
         }
