@@ -15,7 +15,9 @@ import java.util.List;
 
 public class EchoServerMultiThreaded  {
 
-	private static String ip = "localhost";
+	private static String ip_lo = "localhost";
+	private static String ip_mul;
+	private static Integer port;
 	private static HashMap <Integer, ServerSocket> listServerSocket = new HashMap<Integer, ServerSocket>();
 	private static HashMap <Integer, SenderServer> listServerMulticast = new HashMap<Integer, SenderServer>();
   
@@ -24,27 +26,31 @@ public class EchoServerMultiThreaded  {
 	* @param EchoServer port
   	* 
   	**/
-       public static void main(String args[]){ 
+	public static void main(String args[]){ 
         ServerSocket listenSocket;
         
-  	if (args.length != 1) {
-          System.out.println("Usage: java EchoServer <EchoServer port>");
-          System.exit(1);
-  	}
-	try {
-		listenSocket = new ServerSocket(Integer.parseInt(args[0])); //port
-		listServerSocket.put(Integer.parseInt(args[0]), listenSocket);
-		System.out.println("Server ready..."); 
-		while (true) {
-			Socket clientSocket = listenSocket.accept();
-			System.out.println("Connexion from:" + clientSocket.getInetAddress());
-			ClientThread ct = new ClientThread(clientSocket);
-			ct.start();
+		if (args.length != 2) {
+			System.out.println("Usage: java EchoServer <EchoServer ip> <EchoServer port>");
+			System.exit(1);
 		}
-        } catch (Exception e) {
-            System.err.println("Error in EchoServer:" + e);
-        }
-      }
+
+		ip_mul = args[0];
+		port = Integer.parseInt(args[1]);
+
+		try {
+			listenSocket = new ServerSocket(port); //port
+			listServerSocket.put(port, listenSocket);
+			Logger.debug("EchoServerMultiThreaded_main", "Server ready...");
+			while (true) {
+				Socket clientSocket = listenSocket.accept();
+				Logger.debug("EchoServerMultiThreaded_main", "Connexion from:" + clientSocket.getInetAddress());
+				ClientThread ct = new ClientThread(clientSocket);
+				ct.start();
+			}
+		} catch (Exception e) {
+			Logger.error("EchoServerMultiThreaded_main", e.getMessage());
+		}
+	}
 
 	public static String manageRoom(int port){
 		String output;
@@ -62,12 +68,13 @@ public class EchoServerMultiThreaded  {
 		try{
 			ServerSocket clientSocketToJoin = listServerSocket.get(port);
 			Socket clientSocket = clientSocketToJoin.accept();
-			System.out.println("Connexion from:" + clientSocket.getInetAddress() + " with port " + port);
-			ClientThread ct = new ClientThread(clientSocket);
+			SenderServer clientMulticastToListen = listServerMulticast.get(port);
+			Logger.debug("EchoServerMultiThreaded_connectRoom", "Connexion from:" + clientSocket.getInetAddress() + " with port " + port);
+			ClientThread ct = new ClientThread(clientSocket, clientMulticastToListen);
 			ct.start();
-			output = "Server joined";
+			//ct.run();
 		} catch (Exception e) {
-            System.err.println("Error in EchoServer:" + e);
+			Logger.error("EchoServerMultiThreaded_connectRoom", e.getMessage());
         }
 		return output;
 	}
@@ -77,13 +84,13 @@ public class EchoServerMultiThreaded  {
 		String output = "";
 		try {
 			ServerSocket listenSocket = new ServerSocket(port); //port
-			System.out.println("Server ready..."); 
+			Logger.debug("EchoServerMultiThreaded_connectRoom", "Server ready");
 			listServerSocket.put(port, listenSocket);
-			SenderServer listenMulticast = new SenderServer(ip, port);
+			SenderServer listenMulticast = new SenderServer(ip_mul, port);
 			listServerMulticast.put(port,listenMulticast);
 			output = "Server created";
 		} catch (Exception e) {
-			System.err.println("Error in EchoServer:" + e);
+			Logger.error("EchoServerMultiThreaded_createRoom", e.getMessage());
 		}
 		return output;
 	}
