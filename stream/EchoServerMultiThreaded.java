@@ -11,6 +11,8 @@ import java.io.*;
 import java.net.*;
 
 public class EchoServerMultiThreaded  {
+
+	private static String ip = "localhost";
   
  	/**
   	* main method
@@ -27,6 +29,7 @@ public class EchoServerMultiThreaded  {
 	try {
 		listenSocket = new ServerSocket(Integer.parseInt(args[0])); //port
 		System.out.println("Server ready..."); 
+		SenderServer.getInstance(ip, Integer.parseInt(args[0]));
 		while (true) {
 			Socket clientSocket = listenSocket.accept();
 			System.out.println("Connexion from:" + clientSocket.getInetAddress());

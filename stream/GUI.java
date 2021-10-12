@@ -36,6 +36,7 @@ public class GUI {
     // Panel Rençoit Message
     JPanel messagesPanel = new JPanel();
     JPanel liveChatPanel = new JPanel();
+    JScrollPane scrollMessagePane = new JScrollPane(messagesPanel); 
     JLabel testMessage = new JLabel("xXXXDarkSasukeXXxx:    Hello, what's up my boy ?");
     messagesPanel.setLayout(new BoxLayout(messagesPanel, BoxLayout.Y_AXIS));
     liveChatPanel.add(testMessage);
@@ -60,7 +61,7 @@ public class GUI {
     frame.setLocationRelativeTo(null);
     frame.setResizable(false);
     frame.setLayout(new BoxLayout(frame.getContentPane(), BoxLayout.Y_AXIS));
-    frame.add(messagesPanel);
+    frame.add(scrollMessagePane);
     frame.add(textPanel);
     frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     frame.setTitle("Chat - 4IF");

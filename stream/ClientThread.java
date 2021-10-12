@@ -29,8 +29,10 @@ public class ClientThread
     		socIn = new BufferedReader(
     			new InputStreamReader(clientSocket.getInputStream()));    
     		PrintStream socOut = new PrintStream(clientSocket.getOutputStream());
+			SenderServer ss = SenderServer.getInstance("",0);
     		while (true) {
     		  String line = socIn.readLine();
+			  ss.send(line);
     		  socOut.println(line);
     		}
     	} catch (Exception e) {
