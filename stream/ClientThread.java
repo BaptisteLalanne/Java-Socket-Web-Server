@@ -14,9 +14,16 @@ public class ClientThread
 	extends Thread {
 	
 	private Socket clientSocket;
+	private SenderServer multicast;
 	
+	ClientThread(Socket s, SenderServer multicast) {
+		this.clientSocket = s;
+		this.multicast = multicast;
+	}
+
 	ClientThread(Socket s) {
 		this.clientSocket = s;
+		this.multicast = null;
 	}
 
  	/**
@@ -29,11 +36,16 @@ public class ClientThread
     		socIn = new BufferedReader(
     			new InputStreamReader(clientSocket.getInputStream()));    
     		PrintStream socOut = new PrintStream(clientSocket.getOutputStream());
-			SenderServer ss = SenderServer.getInstance("",0);
     		while (true) {
-    		  String line = socIn.readLine();
-			  ss.send(line);
-    		  socOut.println(line);
+    			String line = socIn.readLine();
+				if(this.multicast != null){
+					multicast.send(line);
+				}
+				if(line.contains("createserver")){
+					EchoServerMultiThreaded.connectRoom(Integer.parseInt(line.split(" ")[1]));
+					socOut.println("server created");
+				}
+    			socOut.println(line);
     		}
     	} catch (Exception e) {
         	System.err.println("Error in EchoServer:" + e); 
