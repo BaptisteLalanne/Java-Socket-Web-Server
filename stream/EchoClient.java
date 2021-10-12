@@ -56,8 +56,16 @@ public class EchoClient {
         	  if (line.equals(".")) break;
         	  socOut.println(line);
             if(line.contains("joinserver")){
+                socOut.close();
+                socIn.close();
+                stdIn.close();
+                echoSocket.close();
                 Integer wanted_port = Integer.parseInt(line.split(" ")[1]);
                 echoSocket = new Socket(ip_lo, wanted_port);
+                socIn = new BufferedReader(
+	    		          new InputStreamReader(echoSocket.getInputStream()));    
+                socOut= new PrintStream(echoSocket.getOutputStream());
+                stdIn = new BufferedReader(new InputStreamReader(System.in));
                 multicastSocket = new MulticastSocket(wanted_port);
                 multicastSocket.joinGroup(InetAddress.getByName(ip_mul));
             }

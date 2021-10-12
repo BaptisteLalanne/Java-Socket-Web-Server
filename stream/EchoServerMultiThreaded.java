@@ -72,6 +72,7 @@ public class EchoServerMultiThreaded  {
 			Logger.debug("EchoServerMultiThreaded_connectRoom", "Connexion from:" + clientSocket.getInetAddress() + " with port " + port);
 			ClientThread ct = new ClientThread(clientSocket, clientMulticastToListen);
 			ct.start();
+			output = "Server joined";
 			//ct.run();
 		} catch (Exception e) {
 			Logger.error("EchoServerMultiThreaded_connectRoom", e.getMessage());

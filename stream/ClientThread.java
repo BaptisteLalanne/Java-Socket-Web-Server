@@ -48,37 +48,42 @@ public class ClientThread
     			new InputStreamReader(clientSocket.getInputStream()));    
     		PrintStream socOut = new PrintStream(clientSocket.getOutputStream());
     		while (true) {
+				Logger.warning("ClientThread_run", thread_id + " waiting for a line ");
     			String line = socIn.readLine();
-				if(line.contains("checkserver")){
-					Logger.debug("ClientThread_run", "CHECKSERVER command");
-					Logger.debug("ClientThread_run", "input: " + line);
-					String output = EchoServerMultiThreaded.manageRoom(Integer.parseInt(line.split(" ")[1]));
-					Logger.debug("ClientThread_run", "output through Socket: " + output);
-					socOut.println(output);
-				}else if (line.contains("joinserver")){
-					Logger.debug("ClientThread_run", "JOINSERVER command");
-					Logger.debug("ClientThread_run", "input: " + line);
-					String output = EchoServerMultiThreaded.connectRoom(Integer.parseInt(line.split(" ")[1]));
-					Logger.debug("ClientThread_run", "output through Socket: " + output);
-					socOut.println(output);
-					
-					// testing weird thigs
-					// while (true) {}
-				} else {
-					Logger.debug("ClientThread_run", "MESSAGE command");
-					Logger.debug("ClientThread_run", "input + output through MulticastSocket: " + line);
-					
-					Logger.debug("ClientThread_run", "t_id: " + thread_id);
+				Logger.warning("ClientThread_run", thread_id + " line received  \" " + line + "\"");
+				if (line != null){
+					if(line.contains("checkserver")){
+						Logger.debug("ClientThread_run", "CHECKSERVER command");
+						Logger.debug("ClientThread_run", "input: " + line);
+						String output = EchoServerMultiThreaded.manageRoom(Integer.parseInt(line.split(" ")[1]));
+						Logger.debug("ClientThread_run", "output through Socket: " + output);
+						socOut.println(output);
+					}else if (line.contains("joinserver")){
+						Logger.debug("ClientThread_run", "JOINSERVER command");
+						Logger.debug("ClientThread_run", "input: " + line);
+						String output = EchoServerMultiThreaded.connectRoom(Integer.parseInt(line.split(" ")[1]));
+						Logger.debug("ClientThread_run", "output through Socket: " + output);
+						socOut.println(output);
+						break;
+						// testing weird thigs
+						// while (true) {}
+					} else {
+						Logger.debug("ClientThread_run", "MESSAGE command");
+						Logger.debug("ClientThread_run", "input + output through MulticastSocket: " + line);
+						
+						Logger.debug("ClientThread_run", "t_id: " + thread_id);
 
-					if (multicast == null)
-						Logger.warning("ClientThread_run", "multicast is null!");
-					
-					multicast.send(line);
-					// socOut.println(line);
+						if (multicast == null){
+							Logger.warning("ClientThread_run", "multicast is null!");
+						} else {
+							multicast.send(line);
+						}
+						// socOut.println(line);
+					}
 				}
     		}
     	} catch (Exception e) {
-        	Logger.error("ClientThread_run", e.getMessage());
+        	Logger.error("ClientThread_run: thread_id "+ thread_id, e.getMessage());
         }
 	}
   
