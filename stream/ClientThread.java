@@ -41,11 +41,17 @@ public class ClientThread
 				if(this.multicast != null){
 					multicast.send(line);
 				}
-				if(line.contains("createserver")){
-					EchoServerMultiThreaded.connectRoom(Integer.parseInt(line.split(" ")[1]));
-					socOut.println("server created");
+				if(line.contains("checkserver")){
+					String output = EchoServerMultiThreaded.manageRoom(Integer.parseInt(line.split(" ")[1]));
+					System.out.println(line);
+					socOut.println(output);
+				}else if (line.contains("joinserver")){
+					String output = EchoServerMultiThreaded.connectRoom(Integer.parseInt(line.split(" ")[1]));
+					System.out.println(line);
+					socOut.println(output);
+				} else {
+					socOut.println(line);
 				}
-    			socOut.println(line);
     		}
     	} catch (Exception e) {
         	System.err.println("Error in EchoServer:" + e); 

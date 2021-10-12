@@ -55,6 +55,9 @@ public class EchoClient {
         	line=stdIn.readLine();
         	if (line.equals(".")) break;
         	socOut.println(line);
+          if(line.contains("createserver")){
+            echoSocket = new Socket(args[0],Integer.parseInt(line.split(" ")[1]));
+          }
         	System.out.println("echo: " + socIn.readLine());
         }
       socOut.close();

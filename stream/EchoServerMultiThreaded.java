@@ -46,33 +46,48 @@ public class EchoServerMultiThreaded  {
         }
       }
 
-	public static void connectRoom(int port){
+	public static String manageRoom(int port){
+		String output;
 		if(listServerSocket.containsKey(port)){
+			output= "Ready to connect";
+		} else {
+			output = createRoom(port);
+		}
+		return output;
+	}
+
+
+	public static String connectRoom(int port){
+		String output= "";
 		try{
 			ServerSocket clientSocketToJoin = listServerSocket.get(port);
 			Socket clientSocket = clientSocketToJoin.accept();
 			System.out.println("Connexion from:" + clientSocket.getInetAddress() + " with port " + port);
 			ClientThread ct = new ClientThread(clientSocket);
 			ct.start();
+			output = "Server ready to connect";
 		} catch (Exception e) {
             System.err.println("Error in EchoServer:" + e);
         }
-		}else {
-			try {
-				ServerSocket listenSocket = new ServerSocket(port); //port
-				System.out.println("Server ready..."); 
-				Socket clientSocket = listenSocket.accept();
-				listServerSocket.put(port, listenSocket);
-				SenderServer listenMulticast = new SenderServer(ip, port);
-				listServerMulticast.put(port,listenMulticast);
-				System.out.println("Connexion from:" + clientSocket.getInetAddress());
-				ClientThread ct = new ClientThread(clientSocket,listenMulticast);
-				ct.start();
-			} catch (Exception e) {
-				System.err.println("Error in EchoServer:" + e);
-			}
-		}
+		return output;
 	}
+
+
+	public static String createRoom(int port){
+		String output = "";
+		try {
+			ServerSocket listenSocket = new ServerSocket(port); //port
+			System.out.println("Server ready..."); 
+			listServerSocket.put(port, listenSocket);
+			SenderServer listenMulticast = new SenderServer(ip, port);
+			listServerMulticast.put(port,listenMulticast);
+			output = "Server created";
+		} catch (Exception e) {
+			System.err.println("Error in EchoServer:" + e);
+		}
+		return output;
+	}
+
   }
 
   
