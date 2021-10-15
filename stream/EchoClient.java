@@ -11,6 +11,11 @@ import java.net.*;
 
 
 public class EchoClient {
+
+
+
+
+
     /**
     *  main method
     *  accepts a connection, receives a message from client then sends an echo to the client
@@ -22,6 +27,7 @@ public class EchoClient {
         PrintStream socOut = null;
         BufferedReader stdIn = null;
         BufferedReader socIn = null;
+        ReceiverClientMulticast receiver = null;
 
         if (args.length != 2) {
             System.out.println("Usage: java EchoClient <EchoServer host> <EchoServer port>");
@@ -56,7 +62,11 @@ public class EchoClient {
         	if (line.equals(".")) break;
         	    socOut.println(line);
             if(line.contains("joinserver")){
-                
+
+                // Close le thread de l'ancien multicast
+                if(receiver != null){
+                    receiver.close();
+                }
                 socOut.close();
                 socIn.close();
                 // stdIn.close();
@@ -70,7 +80,11 @@ public class EchoClient {
                 // stdIn = new BufferedReader(new InputStreamReader(System.in));
                 multicastSocket = new MulticastSocket(wanted_port);
                 multicastSocket.joinGroup(InetAddress.getByName(ip_mul));
+
                 
+                // Ouvre un thread pour écouter le multicast
+                receiver = new ReceiverClientMulticast(multicastSocket);
+                receiver.start();
                 Logger.debug("EchoClient_run", "Socket: " + echoSocket.toString());
                 Logger.debug("EchoClient_run", "MulticastSocket: " + multicastSocket.toString());
 
