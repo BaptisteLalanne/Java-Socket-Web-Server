@@ -120,7 +120,16 @@ public class EchoClient {
             // send user input (it's a command)
             socOut.println(line);
             
-            if(line.contains("joinserver")){
+            if(line.contains("joinConversation")){
+                /**:
+                 * 1. Récupérer le port
+                 * 2. Se connecter au socket du port
+                 */
+                // Reçoit le nouveau port donné par le serveur pour la conversation
+                int wanted_port = Integer.parseInt(socIn.readLine());
+                // Envoie la commande de connexion 
+                Logger.warning("EchoClient_run", "readed: " + "ConnectRoom "+ line.split(" ")[1]);
+                socOut.println("ConnectRoom "+ line.split(" ")[1]);
 
                 // Close le thread de l'ancien multicast
                 if(receiver != null){
@@ -130,7 +139,6 @@ public class EchoClient {
                 socIn.close();
                 // stdIn.close();
                 echoSocket.close();
-                Integer wanted_port = Integer.parseInt(line.split(" ")[1]);
                 echoSocket = new Socket(ip_lo, wanted_port);
                 
                 socIn = new BufferedReader(

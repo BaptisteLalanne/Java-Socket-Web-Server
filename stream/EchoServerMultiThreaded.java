@@ -24,7 +24,7 @@ public class EchoServerMultiThreaded  {
 	private static Integer port;
 	private static HashMap <String, Socket> listeUtilisateur = new HashMap<String, Socket>();
 	private static SenderServer generalNotificationsMulticast;
-	private static Integer maxPort = port;
+	private static Integer maxPort;
 	private static HashMap <String, Room> listeRoom = new HashMap<String, Room>();
   
  	/**
@@ -42,6 +42,7 @@ public class EchoServerMultiThreaded  {
 
 		ip_mul = args[0];
 		port = Integer.parseInt(args[1]);
+		maxPort = port;
 
 		initGeneralNotifications();
 
@@ -73,13 +74,23 @@ public class EchoServerMultiThreaded  {
 	public static void notifyConnection(String connected_username) throws IOException {
 		generalNotificationsMulticast.send(connected_username + " est connecté");
 	}
+
+
 	public static String manageRoom(String username1, String username2){
 		String output;
-		if(listeRoom.containsKey(username1+"_"+username2)){
-			output= connectRoom(username1,username2);
-		} else {
+		/**
+		 * 
+		 * Output doit renvoyer le port de connexion pour la conversation
+		 * Ce n'est qu'ensuite que le client pourra se connecter à la room
+		 */
+		
+		if(!listeRoom.containsKey(username1+"_"+username2)){
 			output = createRoom(username1,username2);
+		}else {
+			Room roomToJoin =  listeRoom.get(username1+"_"+username2);
+			output = Integer.toString(roomToJoin.port);
 		}
+
 		return output;
 	}
 
@@ -94,7 +105,7 @@ public class EchoServerMultiThreaded  {
 			Logger.debug("EchoServerMultiThreaded_connectRoom", "Connexion from:" + clientSocket.getInetAddress() + " with port " + roomToJoin.port);
 			ClientThread ct = new ClientThread(clientSocket, clientMulticastToListen);
 			ct.start();
-			output = "Server joined";
+			output = "Room joinned !";
 		} catch (Exception e) {
 			Logger.error("EchoServerMultiThreaded_connectRoom", e.getMessage());
         }
@@ -122,7 +133,7 @@ public class EchoServerMultiThreaded  {
 			String roomName = username1+"_"+username2;
 			Room newRoom = new Room(listenSocket,listenMulticast,portDepart);
 			listeRoom.put(roomName,newRoom);
-			output = "Server created";
+			output = Integer.toString(portDepart);
 		} catch (Exception e) {
 			Logger.error("EchoServerMultiThreaded_createRoom", e.getMessage());
 		}
