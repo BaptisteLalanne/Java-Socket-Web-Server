@@ -5,12 +5,16 @@ import java.net.*;
 import java.util.ArrayList;
 import java.util.List;
 
-
+/**
+ * Room data structure
+ */
 public class Room {
+
 	public ServerSocket serversocket;
 	public SenderServer multicast;
-	private String password;
 	public Integer port;
+
+	private String password;
 	private List<String> user = new ArrayList<String>();
 
 	public Room (ServerSocket serverSocket, SenderServer multicast ,String password, int port, List<String> user){
@@ -34,6 +38,11 @@ public class Room {
 		this.multicast = multicast;
 	}
 
+	/**
+	 * Verify password
+	 * @param pass password input
+	 * @return whether passwords match or not
+	 */
 	public boolean checkPassword(String pass){
 		return this.password == pass;
 	}

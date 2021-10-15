@@ -15,8 +15,6 @@ import java.util.List;
 import java.util.Random;
 
 
-
-
 public class EchoServerMultiThreaded  {
 
 	private static String ip_lo = "localhost";
@@ -35,21 +33,27 @@ public class EchoServerMultiThreaded  {
 	public static void main(String args[]){ 
         ServerSocket listenSocket;
         
+		// sanity check
 		if (args.length != 2) {
 			System.out.println("Usage: java EchoServer <EchoServer ip> <EchoServer port>");
 			System.exit(1);
 		}
 
+		// getting network informations
 		ip_mul = args[0];
 		port = Integer.parseInt(args[1]);
 		maxPort = port;
 
+		// init multicast socket for general notifications
 		initGeneralNotifications();
 
 		try {
-			listenSocket = new ServerSocket(port); //port
+
+			listenSocket = new ServerSocket(port);
 			Logger.debug("EchoServerMultiThreaded_main", "Server ready...");
 			while (true) {
+
+				// when a user connects, manage it in another thread
 				Socket clientSocket = listenSocket.accept();
 				Logger.debug("EchoServerMultiThreaded_main", "Connexion from:" + clientSocket.getInetAddress());
 				ClientThread ct = new ClientThread(clientSocket);
@@ -60,8 +64,11 @@ public class EchoServerMultiThreaded  {
 		}
 	}
 
-
+	/**
+	 * 
+	 */
 	private static void initGeneralNotifications() {
+
 		try {
 			generalNotificationsMulticast = new SenderServer(ip_mul, port);
 		} catch (SocketException e) {
@@ -71,22 +78,36 @@ public class EchoServerMultiThreaded  {
 		}
 	}
 
+	/**
+	 * Send message to notify that a user just connects
+	 * @param connected_username user who just connects
+	 * @throws IOException
+	 */
 	public static void notifyConnection(String connected_username) throws IOException {
 		generalNotificationsMulticast.send(connected_username + " est connecté");
 	}
 
-
+	/**
+	 * If needed, create a room for two users.
+	 * @param username1 the client asking for a room (current user)
+	 * @param username2 the receiver
+	 * @return the port of corresponding room.
+	 */
 	public static String manageRoom(String username1, String username2){
 		String output;
+
 		/**
 		 * 
 		 * Output doit renvoyer le port de connexion pour la conversation
 		 * Ce n'est qu'ensuite que le client pourra se connecter à la room
 		 */
 		
+		// TODO: key must be the concatenation of SORTED users
 		if(!listeRoom.containsKey(username1+"_"+username2)){
+			// room doesn't exist, create it
 			output = createRoom(username1,username2);
 		}else {
+			// room exists
 			Room roomToJoin =  listeRoom.get(username1+"_"+username2);
 			output = Integer.toString(roomToJoin.port);
 		}
@@ -94,28 +115,48 @@ public class EchoServerMultiThreaded  {
 		return output;
 	}
 
-
+	/**
+	 * Connect a user to a created room.
+	 * Accepts its socket.
+	 * @param username1 the client asking for a room (current user)
+	 * @param username2 the receiver
+	 * @return the port of corresponding room.
+	 */
 	public static String connectRoom(String username1, String username2){
 		String output= "";
 		try{
+			
+			// getting room
 			Room roomToJoin =  listeRoom.get(username1+"_"+username2);
+
+			// getting room sockets
 			ServerSocket clientSocketToJoin = roomToJoin.serversocket;
 			Socket clientSocket = clientSocketToJoin.accept();
 			SenderServer clientMulticastToListen = roomToJoin.multicast;
 			Logger.debug("EchoServerMultiThreaded_connectRoom", "Connexion from:" + clientSocket.getInetAddress() + " with port " + roomToJoin.port);
+
+			// manage room in another thread
 			ClientThread ct = new ClientThread(clientSocket, clientMulticastToListen);
 			ct.start();
-			output = "Room joinned !";
+
+			output = "Room joined !";
 		} catch (Exception e) {
 			Logger.error("EchoServerMultiThreaded_connectRoom", e.getMessage());
         }
 		return output;
 	}
 
-
+	/**
+	 * Create room for two users.
+	 * @param username1 the client asking for a room (current user)
+	 * @param username2 the receiver
+	 * @return the port of corresponding room.
+	 */
 	public static String createRoom(String username1, String username2){
 		String output = "";
 		try {
+
+			// create ServerSocket by searching next available port
 			boolean portToFind = true;
 			int portDepart = EchoServerMultiThreaded.maxPort + 1 ;
 			ServerSocket listenSocket = null;
@@ -129,10 +170,15 @@ public class EchoServerMultiThreaded  {
 					portDepart++;
 				}
 			}
+
+			// create multicast socket for room
 			SenderServer listenMulticast = new SenderServer(ip_mul, port);
+
+			// create room and push instance to static data structure
 			String roomName = username1+"_"+username2;
 			Room newRoom = new Room(listenSocket,listenMulticast,portDepart);
 			listeRoom.put(roomName,newRoom);
+
 			output = Integer.toString(portDepart);
 		} catch (Exception e) {
 			Logger.error("EchoServerMultiThreaded_createRoom", e.getMessage());
@@ -140,21 +186,38 @@ public class EchoServerMultiThreaded  {
 		return output;
 	}
 
-
+	/**
+	 * Add user to list if not already inside.
+	 * @param name name of new user
+	 * @param socket user's socket
+	 * @return whether user has been added or not.
+	 */
 	public static boolean addUser(String name, Socket socket){
 		boolean output = false;
+
+		// check if user already connected
 		if(!listeUtilisateur.containsKey(name)){
 			listeUtilisateur.put(name, socket);
 			output = true;
 		}
+
 		return output;
 	}
 
+	/**
+	 * Get all connected users.
+	 * @return serialized users list.
+	 */
 	public static String getConnectedUsers() {
 		String output = String.join("_;_", listeUtilisateur.keySet());
 		return output;
 	}
 
+	/**
+	 * Password generation method.
+	 * @param len length of generated password
+	 * @return generated passwords
+	 */
 	public static String generateRandomPassword(int len) {
 		String chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghi"
 		+"jklmnopqrstuvwxyz!@#$%&";

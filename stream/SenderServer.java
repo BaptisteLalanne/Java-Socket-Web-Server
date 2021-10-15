@@ -6,12 +6,13 @@ import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketException;
 
+/**
+ * Handling DatagramSocket to send messages to many users.
+ */
 public class SenderServer {
     
     private DatagramSocket serverSocket;
-
     private String ip;
-    
     private int port;
 
 	public SenderServer(String ip, int port) throws SocketException, IOException{
@@ -21,7 +22,11 @@ public class SenderServer {
         serverSocket = new DatagramSocket();
 	}
 
-
+    /**
+     * Send message
+     * @param argument message to be sent.
+     * @throws IOException
+     */
     public void send(String argument) throws IOException{
         // make datagram packet
         byte[] message = argument.getBytes();
@@ -31,6 +36,9 @@ public class SenderServer {
         serverSocket.send(packet);
     }
     
+    /**
+     * Close DatagramSocket
+     */
     public void close(){
         serverSocket.close();
     }

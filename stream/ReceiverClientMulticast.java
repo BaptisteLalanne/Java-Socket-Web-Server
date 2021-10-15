@@ -7,10 +7,17 @@ import java.net.MulticastSocket;
 public class ReceiverClientMulticast extends Thread {
     private MulticastSocket multicast = null;
     
+    /**
+     * Default constructor
+     * @param multicast multicast socket
+     */
     public ReceiverClientMulticast(MulticastSocket multicast){
         this.multicast = multicast;
     }
     
+    /**
+     * Infinite loop waiting and printing received messages.
+     */
     public void run() {
         while(true){
             try{
@@ -21,8 +28,13 @@ public class ReceiverClientMulticast extends Thread {
         }
     }
 
+    /**
+     * Waiting next message, and print it once received.
+     * @throws IOException
+     */
     public void printMessage() throws IOException{
-        // make datagram packet to recieve
+
+        // make datagram packet to receive
         byte[] message = new byte[256];
         DatagramPacket packet = new DatagramPacket(message, message.length);
         
@@ -31,6 +43,9 @@ public class ReceiverClientMulticast extends Thread {
         System.out.println(new String(packet.getData()));
     }
 
+    /**
+     * Close multicast socket.
+     */
     public void close(){
         multicast.close();
     }

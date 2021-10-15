@@ -3,6 +3,9 @@ package stream;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 
+/**
+ * Debug class that helps printing messages in terminal.
+ */
 public class Logger {
     
     public static final String ANSI_RESET  = "\u001B[0m";
