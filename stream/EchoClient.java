@@ -12,57 +12,157 @@ import java.net.*;
 
 public class EchoClient {
 
+    public static Socket echoSocket = null;
+    public static MulticastSocket multicast_private = null;
+    public static MulticastSocket multicast_public = null;
+
+    public static PrintStream socOut = null;
+    public static BufferedReader stdIn = null;
+    public static BufferedReader socIn = null;
+
+    public static MulticastThread th_receiver = null;
+    public static MulticastThread th_general = null;
+
+    public static String username = null;
+    public static String ip_lo = "localhost";
+    public static String ip_mul = null;
+    public static Integer port = null;
+
     /**
     *  main method
-    *  accepts a connection, receives a message from client then sends an echo to the client
     **/
     public static void main(String[] args) throws IOException {
 
-        Socket echoSocket = null;
-        MulticastSocket multicastSocket = null;
-        MulticastSocket generalNotificationsMulticast = null;
-
-        PrintStream socOut = null;
-        BufferedReader stdIn = null;
-        BufferedReader socIn = null;
-        ReceiverClientMulticast receiver = null;
-
+        // sanity check
         if (args.length != 2) {
             System.out.println("Usage: java EchoClient <EchoServer host> <EchoServer port>");
             System.exit(1);
         }
 
-        String ip_lo = "localhost";
-        String ip_mul = args[0];
-        Integer port = Integer.parseInt(args[1]);
+        // get network informations from arguments
+        ip_mul = args[0];
+        port = Integer.parseInt(args[1]);
 
+        // create socket to communicate with server's main port
+        initSocket();        
+
+        // manage connection by username
+        connectUser();
+        
+        // friendly message <3
+        System.out.println("Bonjour " + username);
+        showConnectedUsers();
+
+        // init multicast socket for general notifications
+        multicast_public = new MulticastSocket(port);
+        multicast_public.joinGroup(InetAddress.getByName(ip_mul));
+
+        // create thread for general notifications
+        th_general = new MulticastThread(multicast_public);
+        th_general.start();
+
+        String line;
+
+        // main loop of program
+        while (true) {
+
+            // get user input
+        	line=stdIn.readLine();
+            Logger.warning("EchoClient_run", "readed: " + line);
+        	
+            // check if user wants to exit
+            if (line.equals(".")) break;
+        	
+            // send user input (it's a command)
+            socOut.println(line);
+            
+            if(line.contains("joinConversation")){
+                String wanted_receiver = line.split(" ")[1];
+                joinConversation(wanted_receiver);
+            }
+        }
+
+        // closing buffers
+        socOut.close();
+        socIn.close();
+        stdIn.close();
+
+        // closing sockets
+        echoSocket.close();
+        multicast_public.close();
+    }
+
+    /**
+     * Join a conversation (a room)
+     */
+    public static void joinConversation(String receiver) throws IOException {
+        /**:
+         * 1. Récupérer le port
+         * 2. Se connecter au socket du port
+         */
+
+        // Reçoit le nouveau port donné par le serveur pour la conversation
+        int wanted_port = Integer.parseInt(socIn.readLine());
+
+        // Envoie la commande de connexion 
+        Logger.warning("EchoClient_run", "readed: " + "ConnectRoom " + receiver);
+        socOut.println("ConnectRoom " + receiver);
+
+        // Close le thread de l'ancien multicast
+        if(th_receiver != null){
+            th_receiver.close();
+        }
+        socOut.close();
+        socIn.close();
+        // stdIn.close();
+        echoSocket.close();
+        echoSocket = new Socket(ip_lo, wanted_port);
+        
+        socIn = new BufferedReader(
+                    new InputStreamReader(echoSocket.getInputStream()));    
+        socOut= new PrintStream(echoSocket.getOutputStream());
+        // stdIn = new BufferedReader(new InputStreamReader(System.in));
+        multicast_private = new MulticastSocket(wanted_port);
+        multicast_private.joinGroup(InetAddress.getByName(ip_mul));
+
+        
+        // Ouvre un thread pour écouter le multicast
+        th_receiver = new MulticastThread(multicast_private);
+        th_receiver.start();
+        Logger.debug("EchoClient_run", "Socket: " + echoSocket.toString());
+        Logger.debug("EchoClient_run", "MulticastSocket: " + multicast_private.toString());
+    }
+
+    /**
+     * Initialize socket to communicate with server's main port
+     */
+    public static void initSocket() {
+
+        // create socket to communicate with main server port
         try {
-      	    // creation socket ==> connexion
-      	    echoSocket = new Socket(ip_lo,port);
-	          socIn = new BufferedReader(
-	    		          new InputStreamReader(echoSocket.getInputStream()));    
-	          socOut= new PrintStream(echoSocket.getOutputStream());
-	          stdIn = new BufferedReader(new InputStreamReader(System.in));
+            echoSocket = new Socket(ip_lo,port);
+            socIn = new BufferedReader(
+                        new InputStreamReader(echoSocket.getInputStream()));    
+            socOut= new PrintStream(echoSocket.getOutputStream());
+            stdIn = new BufferedReader(new InputStreamReader(System.in));
         } catch (UnknownHostException e) {
-            System.err.println("Don't know about host:" + args[0]);
+            System.err.println("Don't know about host:" + ip_mul);
             System.exit(1);
         } catch (IOException e) {
             System.err.println("Couldn't get I/O for "
-                               + "the connection to:"+ args[0]);
+                                + "the connection to:"+ ip_mul);
             System.exit(1);
         }
-                             
-        String line;
-        // new GUI();
+    }
 
-        // at this point, client can communicate whith "global port" (ie.: 6001)
-        // he is not connected
-
-        // manage connection by username
-        boolean connected = false;
-        String username = null;
+    /**
+     * Ask user's username
+     * @throws IOException
+     */
+    public static void connectUser() throws IOException{
         String command = null;
         String response = null;
+        boolean connected = false;
 
         while (!connected)
         {
@@ -92,87 +192,19 @@ public class EchoClient {
             else
                 System.out.println("Ce nom d'utilisateur est incorrect ou deja utilise.");
         }
-
-        // at this point, user is connected, and can communicate with "global port"
-        
-        // friendly message <3
-        System.out.println("Bonjour " + username);
-        showConnectedUsers(socIn, socOut);
-
-        // init multicast socket for general notifications
-        generalNotificationsMulticast = new MulticastSocket(port);
-        generalNotificationsMulticast.joinGroup(InetAddress.getByName(ip_mul));
-
-        // create thread for general notifications
-        ThreadGeneralNotifications th_general = new ThreadGeneralNotifications(generalNotificationsMulticast);
-        th_general.start();
-
-        // main loop of program
-        while (true) {
-
-            // get user input
-        	line=stdIn.readLine();
-            Logger.warning("EchoClient_run", "readed: " + line);
-        	
-            // check if user wants to exit
-            if (line.equals(".")) break;
-        	
-            // send user input (it's a command)
-            socOut.println(line);
-            
-            if(line.contains("joinConversation")){
-                /**:
-                 * 1. Récupérer le port
-                 * 2. Se connecter au socket du port
-                 */
-                // Reçoit le nouveau port donné par le serveur pour la conversation
-                int wanted_port = Integer.parseInt(socIn.readLine());
-                // Envoie la commande de connexion 
-                Logger.warning("EchoClient_run", "readed: " + "ConnectRoom "+ line.split(" ")[1]);
-                socOut.println("ConnectRoom "+ line.split(" ")[1]);
-
-                // Close le thread de l'ancien multicast
-                if(receiver != null){
-                    receiver.close();
-                }
-                socOut.close();
-                socIn.close();
-                // stdIn.close();
-                echoSocket.close();
-                echoSocket = new Socket(ip_lo, wanted_port);
-                
-                socIn = new BufferedReader(
-	    		          new InputStreamReader(echoSocket.getInputStream()));    
-                socOut= new PrintStream(echoSocket.getOutputStream());
-                // stdIn = new BufferedReader(new InputStreamReader(System.in));
-                multicastSocket = new MulticastSocket(wanted_port);
-                multicastSocket.joinGroup(InetAddress.getByName(ip_mul));
-
-                
-                // Ouvre un thread pour écouter le multicast
-                receiver = new ReceiverClientMulticast(multicastSocket);
-                receiver.start();
-                Logger.debug("EchoClient_run", "Socket: " + echoSocket.toString());
-                Logger.debug("EchoClient_run", "MulticastSocket: " + multicastSocket.toString());
-
-            }
-        }
-        socOut.close();
-        socIn.close();
-        stdIn.close();
-        echoSocket.close();
-
-        generalNotificationsMulticast.close();
     }
 
-    public static void showConnectedUsers(BufferedReader bf_in, PrintStream bf_out) {
+    /**
+     * Print all connected users (in any room)
+     */
+    public static void showConnectedUsers() {
         try {
             // send command to server
             String command = "GetUsers";
-            bf_out.println(command);
+            socOut.println(command);
 
             // get response (users list as serialized string)
-            String response = bf_in.readLine();
+            String response = socIn.readLine();
             String[] users = response.split("_;_");
 
             // print users or error message

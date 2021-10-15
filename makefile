@@ -7,9 +7,13 @@ JC = javac
 CLASSES = \
 	stream/ClientThread.java \
     stream/EchoClient.java \
-    stream/EchoServer.java \
 	stream/EchoServerMultiThreaded.java \
-	stream/GUI.java 
+	stream/GUI.java \
+	stream/Logger.java \
+	stream/MulticastThread.java \
+	stream/Room.java \
+	stream/SenderServer.java
+
 
 default: classes
 

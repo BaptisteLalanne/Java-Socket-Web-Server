@@ -4,14 +4,14 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.MulticastSocket;
 
-public class ReceiverClientMulticast extends Thread {
+public class MulticastThread extends Thread {
     private MulticastSocket multicast = null;
     
     /**
      * Default constructor
      * @param multicast multicast socket
      */
-    public ReceiverClientMulticast(MulticastSocket multicast){
+    public MulticastThread(MulticastSocket multicast){
         this.multicast = multicast;
     }
     
