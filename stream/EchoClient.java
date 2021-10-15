@@ -20,6 +20,8 @@ public class EchoClient {
 
         Socket echoSocket = null;
         MulticastSocket multicastSocket = null;
+        MulticastSocket generalNotificationsMulticast = null;
+
         PrintStream socOut = null;
         BufferedReader stdIn = null;
         BufferedReader socIn = null;
@@ -97,6 +99,14 @@ public class EchoClient {
         System.out.println("Bonjour " + username);
         showConnectedUsers(socIn, socOut);
 
+        // init multicast socket for general notifications
+        generalNotificationsMulticast = new MulticastSocket(port);
+        generalNotificationsMulticast.joinGroup(InetAddress.getByName(ip_mul));
+
+        // create thread for general notifications
+        ThreadGeneralNotifications th_general = new ThreadGeneralNotifications(generalNotificationsMulticast);
+        th_general.start();
+
         // main loop of program
         while (true) {
 
@@ -143,6 +153,8 @@ public class EchoClient {
         socIn.close();
         stdIn.close();
         echoSocket.close();
+
+        generalNotificationsMulticast.close();
     }
 
     public static void showConnectedUsers(BufferedReader bf_in, PrintStream bf_out) {
@@ -157,7 +169,7 @@ public class EchoClient {
 
             // print users or error message
             if (users.length > 0) {
-                System.out.println("Liste des utilisateurs connectés :")
+                System.out.println("Liste des utilisateurs connectés :");
                 for (String u: users) {
                     System.out.println("- " + u);
                 }

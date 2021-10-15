@@ -57,10 +57,13 @@ public class ClientThread
 					if(line.contains("UsernameIs")){
 						Logger.debug("ClientThread_run", "USERNAMEIS command");
 						Logger.debug("ClientThread_run", "input: " + line);
-						Boolean status = EchoServerMultiThreaded.addUser(line.split(" ")[1], clientSocket);
+						String wanted_username = line.split(" ")[1];
+						Boolean status = EchoServerMultiThreaded.addUser(wanted_username, clientSocket);
 						output = "error";
-						if(status)
+						if(status) {
 							output = "success";
+							EchoServerMultiThreaded.notifyConnection(wanted_username);
+						}
 						Logger.debug("ClientThread_run", "output through Socket: " + output);
 						socOut.println(output);
 

@@ -24,7 +24,7 @@ public class SenderServer {
 
     public void send(String argument) throws IOException{
         // make datagram packet
-        byte[] message = ("Multicasting... "+ argument).getBytes();
+        byte[] message = argument.getBytes();
         DatagramPacket packet = new DatagramPacket(message, message.length, 
             InetAddress.getByName(ip), port);
         // send packet

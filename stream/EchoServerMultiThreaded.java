@@ -22,6 +22,8 @@ public class EchoServerMultiThreaded  {
 	private static HashMap <Integer, SenderServer> listServerMulticast = new HashMap<Integer, SenderServer>();
 	private static HashMap <String, Socket> listeUtilisateur = new HashMap<String, Socket>();
 
+	private static SenderServer generalNotificationsMulticast;
+
  	/**
   	* main method
 	* @param EchoServer port
@@ -38,6 +40,8 @@ public class EchoServerMultiThreaded  {
 		ip_mul = args[0];
 		port = Integer.parseInt(args[1]);
 
+		initGeneralNotifications();
+
 		try {
 			listenSocket = new ServerSocket(port); //port
 			listServerSocket.put(port, listenSocket);
@@ -51,6 +55,20 @@ public class EchoServerMultiThreaded  {
 		} catch (Exception e) {
 			Logger.error("EchoServerMultiThreaded_main", e.getMessage());
 		}
+	}
+
+	private static void initGeneralNotifications() {
+		try {
+			generalNotificationsMulticast = new SenderServer(ip_mul, port);
+		} catch (SocketException e) {
+			Logger.error("EchoServerMultiThreaded_initGeneralNotifications", e.getMessage());
+		} catch (IOException e) {
+			Logger.error("EchoServerMultiThreaded_initGeneralNotifications", e.getMessage());
+		}
+	}
+
+	public static void notifyConnection(String connected_username) throws IOException {
+		generalNotificationsMulticast.send(connected_username + " est connecté");
 	}
 
 	public static String manageRoom(int port){
