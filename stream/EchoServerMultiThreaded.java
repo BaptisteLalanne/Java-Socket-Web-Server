@@ -20,7 +20,8 @@ public class EchoServerMultiThreaded  {
 	private static Integer port;
 	private static HashMap <Integer, ServerSocket> listServerSocket = new HashMap<Integer, ServerSocket>();
 	private static HashMap <Integer, SenderServer> listServerMulticast = new HashMap<Integer, SenderServer>();
-  
+	private static HashMap <String, Socket> listeUtilisateur = new HashMap<String, Socket>();
+
  	/**
   	* main method
 	* @param EchoServer port
@@ -93,6 +94,20 @@ public class EchoServerMultiThreaded  {
 		} catch (Exception e) {
 			Logger.error("EchoServerMultiThreaded_createRoom", e.getMessage());
 		}
+		return output;
+	}
+
+	public static boolean addUser(String name, Socket socket){
+		boolean output = false;
+		if(!listeUtilisateur.containsKey(name)){
+			listeUtilisateur.put(name, socket);
+			output = true;
+		}
+		return output;
+	}
+
+	public static String getConnectedUsers() {
+		String output = String.join("_;_", listeUtilisateur.keySet());
 		return output;
 	}
 
