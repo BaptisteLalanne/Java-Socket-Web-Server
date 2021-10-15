@@ -63,13 +63,13 @@ public class EchoServerMultiThreaded  {
 	}
 
 
-	public static String connectRoom(int port){
+	public static String connectRoom(int _port){
 		String output= "";
 		try{
-			ServerSocket clientSocketToJoin = listServerSocket.get(port);
+			ServerSocket clientSocketToJoin = listServerSocket.get(_port);
 			Socket clientSocket = clientSocketToJoin.accept();
-			SenderServer clientMulticastToListen = listServerMulticast.get(port);
-			Logger.debug("EchoServerMultiThreaded_connectRoom", "Connexion from:" + clientSocket.getInetAddress() + " with port " + port);
+			SenderServer clientMulticastToListen = listServerMulticast.get(_port);
+			Logger.debug("EchoServerMultiThreaded_connectRoom", "Connexion from:" + clientSocket.getInetAddress() + " with port " + _port);
 			ClientThread ct = new ClientThread(clientSocket, clientMulticastToListen);
 			ct.start();
 			output = "Server joined";

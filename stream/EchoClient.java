@@ -10,7 +10,6 @@ import java.io.*;
 import java.net.*;
 
 
-
 public class EchoClient {
     /**
     *  main method
@@ -52,24 +51,32 @@ public class EchoClient {
         String line;
         // new GUI();
         while (true) {
-        	  line=stdIn.readLine();
-        	  if (line.equals(".")) break;
-        	  socOut.println(line);
+        	line=stdIn.readLine();
+            Logger.warning("EchoClient_run", "readed: " + line);
+        	if (line.equals(".")) break;
+        	    socOut.println(line);
             if(line.contains("joinserver")){
+                
                 socOut.close();
                 socIn.close();
-                stdIn.close();
+                // stdIn.close();
                 echoSocket.close();
                 Integer wanted_port = Integer.parseInt(line.split(" ")[1]);
                 echoSocket = new Socket(ip_lo, wanted_port);
+                
                 socIn = new BufferedReader(
 	    		          new InputStreamReader(echoSocket.getInputStream()));    
                 socOut= new PrintStream(echoSocket.getOutputStream());
-                stdIn = new BufferedReader(new InputStreamReader(System.in));
+                // stdIn = new BufferedReader(new InputStreamReader(System.in));
                 multicastSocket = new MulticastSocket(wanted_port);
                 multicastSocket.joinGroup(InetAddress.getByName(ip_mul));
+                
+                Logger.debug("EchoClient_run", "Socket: " + echoSocket.toString());
+                Logger.debug("EchoClient_run", "MulticastSocket: " + multicastSocket.toString());
+
+            } else {
+                //Logger.debug("EchoClient_main", "input through Socket : " + socIn.readLine());
             }
-            Logger.debug("EchoClient_main", "input through Socket : " + socIn.readLine());
         }
         socOut.close();
         socIn.close();

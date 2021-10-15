@@ -63,7 +63,7 @@ public class ClientThread
 						Logger.debug("ClientThread_run", "input: " + line);
 						String output = EchoServerMultiThreaded.connectRoom(Integer.parseInt(line.split(" ")[1]));
 						Logger.debug("ClientThread_run", "output through Socket: " + output);
-						socOut.println(output);
+						// socOut.println(output);
 						break;
 						// testing weird thigs
 						// while (true) {}
@@ -82,6 +82,9 @@ public class ClientThread
 					}
 				}
     		}
+
+			Logger.warning("ClientThread_run", "Loop in thread " + thread_id + " ended");
+
     	} catch (Exception e) {
         	Logger.error("ClientThread_run: thread_id "+ thread_id, e.getMessage());
         }
