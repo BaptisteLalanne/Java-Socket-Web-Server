@@ -22,6 +22,8 @@ public class EchoServerMultiThreaded  {
 	private static String ip_lo = "localhost";
 	private static String ip_mul;
 	private static Integer port;
+	private static HashMap <String, Socket> listeUtilisateur = new HashMap<String, Socket>();
+	private static SenderServer generalNotificationsMulticast;
 	private static Integer maxPort = port;
 	private static HashMap <String, Room> listeRoom = new HashMap<String, Room>();
   
@@ -41,6 +43,8 @@ public class EchoServerMultiThreaded  {
 		ip_mul = args[0];
 		port = Integer.parseInt(args[1]);
 
+		initGeneralNotifications();
+
 		try {
 			listenSocket = new ServerSocket(port); //port
 			Logger.debug("EchoServerMultiThreaded_main", "Server ready...");
@@ -55,6 +59,20 @@ public class EchoServerMultiThreaded  {
 		}
 	}
 
+
+	private static void initGeneralNotifications() {
+		try {
+			generalNotificationsMulticast = new SenderServer(ip_mul, port);
+		} catch (SocketException e) {
+			Logger.error("EchoServerMultiThreaded_initGeneralNotifications", e.getMessage());
+		} catch (IOException e) {
+			Logger.error("EchoServerMultiThreaded_initGeneralNotifications", e.getMessage());
+		}
+	}
+
+	public static void notifyConnection(String connected_username) throws IOException {
+		generalNotificationsMulticast.send(connected_username + " est connecté");
+	}
 	public static String manageRoom(String username1, String username2){
 		String output;
 		if(listeRoom.containsKey(username1+"_"+username2)){
@@ -108,6 +126,21 @@ public class EchoServerMultiThreaded  {
 		} catch (Exception e) {
 			Logger.error("EchoServerMultiThreaded_createRoom", e.getMessage());
 		}
+		return output;
+	}
+
+
+	public static boolean addUser(String name, Socket socket){
+		boolean output = false;
+		if(!listeUtilisateur.containsKey(name)){
+			listeUtilisateur.put(name, socket);
+			output = true;
+		}
+		return output;
+	}
+
+	public static String getConnectedUsers() {
+		String output = String.join("_;_", listeUtilisateur.keySet());
 		return output;
 	}
 

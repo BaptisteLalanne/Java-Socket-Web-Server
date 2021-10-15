@@ -42,8 +42,9 @@ public class ClientThread
   	* @param clientSocket the client socket
   	**/
 	public void run() {
-    	  try {
+		try {
     		BufferedReader socIn = null;
+			String output = null;
     		socIn = new BufferedReader(
     			new InputStreamReader(clientSocket.getInputStream()));    
     		PrintStream socOut = new PrintStream(clientSocket.getOutputStream());
@@ -52,12 +53,39 @@ public class ClientThread
     			String line = socIn.readLine();
 				Logger.warning("ClientThread_run", thread_id + " line received  \" " + line + "\"");
 				if (line != null){
-					if(line.contains("join")){
-						Logger.debug("ClientThread_run", "JOIN command");
+					
+					if(line.contains("UsernameIs")){
+						Logger.debug("ClientThread_run", "USERNAMEIS command");
 						Logger.debug("ClientThread_run", "input: " + line);
-						String output = EchoServerMultiThreaded.manageRoom(Integer.parseInt(line.split(" ")[1]));
+						String wanted_username = line.split(" ")[1];
+						Boolean status = EchoServerMultiThreaded.addUser(wanted_username, clientSocket);
+						output = "error";
+						if(status) {
+							output = "success";
+							EchoServerMultiThreaded.notifyConnection(wanted_username);
+						}
 						Logger.debug("ClientThread_run", "output through Socket: " + output);
 						socOut.println(output);
+
+					} else if (line.contains("GetUsers")) {
+						output = EchoServerMultiThreaded.getConnectedUsers();
+						socOut.println(output);
+
+					} else if(line.contains("checkserver")){
+						Logger.debug("ClientThread_run", "CHECKSERVER command");
+						Logger.debug("ClientThread_run", "input: " + line);
+						output = EchoServerMultiThreaded.manageRoom(Integer.parseInt(line.split(" ")[1]));
+						Logger.debug("ClientThread_run", "output through Socket: " + output);
+						socOut.println(output);
+
+					} else if (line.contains("joinserver")){
+						Logger.debug("ClientThread_run", "JOINSERVER command");
+						Logger.debug("ClientThread_run", "input: " + line);
+						output = EchoServerMultiThreaded.connectRoom(Integer.parseInt(line.split(" ")[1]));
+						Logger.debug("ClientThread_run", "output through Socket: " + output);
+						// socOut.println(output);
+						break;
+
 					} else {
 						Logger.debug("ClientThread_run", "MESSAGE command");
 						Logger.debug("ClientThread_run", "input + output through MulticastSocket: " + line);
