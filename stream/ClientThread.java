@@ -57,11 +57,13 @@ public class ClientThread extends Thread {
 			socIn = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
 			PrintStream socOut = new PrintStream(clientSocket.getOutputStream());
 
-			while (true) {
+			String line = "init";
+
+			while (true && line != null) {
 
 				// waiting and reading client input
 				Logger.warning("ClientThread_run", thread_id + " waiting for a line ");
-				String line = socIn.readLine();
+				line = socIn.readLine();
 				Logger.warning("ClientThread_run", thread_id + " line received  \" " + line + "\"");
 
 				// analyzing client input
