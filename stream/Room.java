@@ -17,7 +17,7 @@ public class Room {
 	private String password;
 	private List<String> user = new ArrayList<String>();
 
-	public Room (ServerSocket serverSocket, SenderServer multicast ,String password, int port, List<String> user){
+	public Room(ServerSocket serverSocket, SenderServer multicast, String password, int port, List<String> user) {
 		this.serversocket = serverSocket;
 		this.port = port;
 		this.user = user;
@@ -25,14 +25,14 @@ public class Room {
 		this.password = password;
 	}
 
-	public Room (ServerSocket serverSocket, SenderServer multicast ,String password, int port){
+	public Room(ServerSocket serverSocket, SenderServer multicast, String password, int port) {
 		this.serversocket = serverSocket;
 		this.port = port;
 		this.multicast = multicast;
 		this.password = password;
 	}
 
-	public Room (ServerSocket serverSocket, SenderServer multicast, int port){
+	public Room(ServerSocket serverSocket, SenderServer multicast, int port) {
 		this.serversocket = serverSocket;
 		this.port = port;
 		this.multicast = multicast;
@@ -40,10 +40,11 @@ public class Room {
 
 	/**
 	 * Verify password
+	 * 
 	 * @param pass password input
 	 * @return whether passwords match or not
 	 */
-	public boolean checkPassword(String pass){
+	public boolean checkPassword(String pass) {
 		return this.password == pass;
 	}
 }

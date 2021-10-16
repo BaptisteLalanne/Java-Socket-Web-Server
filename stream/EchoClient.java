@@ -9,7 +9,6 @@ package stream;
 import java.io.*;
 import java.net.*;
 
-
 public class EchoClient {
 
     public static Socket echoSocket = null;
@@ -29,8 +28,8 @@ public class EchoClient {
     public static Integer port = null;
 
     /**
-    *  main method
-    **/
+     * main method
+     **/
     public static void main(String[] args) throws IOException {
 
         // sanity check
@@ -44,11 +43,11 @@ public class EchoClient {
         port = Integer.parseInt(args[1]);
 
         // create socket to communicate with server's main port
-        initSocket();        
+        initSocket();
 
         // manage connection by username
         connectUser();
-        
+
         // friendly message <3
         System.out.println("Bonjour " + username);
         showConnectedUsers();
@@ -67,16 +66,17 @@ public class EchoClient {
         while (true) {
 
             // get user input
-        	line=stdIn.readLine();
+            line = stdIn.readLine();
             Logger.warning("EchoClient_run", "readed: " + line);
-        	
+
             // check if user wants to exit
-            if (line.equals(".")) break;
-        	
+            if (line.equals("."))
+                break;
+
             // send user input (it's a command)
             socOut.println(line);
-            
-            if(line.contains("joinConversation")){
+
+            if (line.contains("joinConversation")) {
                 String wanted_receiver = line.split(" ")[1];
                 joinConversation(wanted_receiver);
             }
@@ -96,20 +96,19 @@ public class EchoClient {
      * Join a conversation (a room)
      */
     public static void joinConversation(String receiver) throws IOException {
-        /**:
-         * 1. Récupérer le port
-         * 2. Se connecter au socket du port
+        /**
+         * : 1. Récupérer le port 2. Se connecter au socket du port
          */
 
         // Reçoit le nouveau port donné par le serveur pour la conversation
         int wanted_port = Integer.parseInt(socIn.readLine());
 
-        // Envoie la commande de connexion 
+        // Envoie la commande de connexion
         Logger.warning("EchoClient_run", "readed: " + "ConnectRoom " + receiver);
         socOut.println("ConnectRoom " + receiver);
 
         // Close le thread de l'ancien multicast
-        if(th_receiver != null){
+        if (th_receiver != null) {
             th_receiver.close();
         }
         socOut.close();
@@ -117,15 +116,13 @@ public class EchoClient {
         // stdIn.close();
         echoSocket.close();
         echoSocket = new Socket(ip_lo, wanted_port);
-        
-        socIn = new BufferedReader(
-                    new InputStreamReader(echoSocket.getInputStream()));    
-        socOut= new PrintStream(echoSocket.getOutputStream());
+
+        socIn = new BufferedReader(new InputStreamReader(echoSocket.getInputStream()));
+        socOut = new PrintStream(echoSocket.getOutputStream());
         // stdIn = new BufferedReader(new InputStreamReader(System.in));
         multicast_private = new MulticastSocket(wanted_port);
         multicast_private.joinGroup(InetAddress.getByName(ip_mul));
 
-        
         // Ouvre un thread pour écouter le multicast
         th_receiver = new MulticastThread(multicast_private);
         th_receiver.start();
@@ -140,32 +137,30 @@ public class EchoClient {
 
         // create socket to communicate with main server port
         try {
-            echoSocket = new Socket(ip_lo,port);
-            socIn = new BufferedReader(
-                        new InputStreamReader(echoSocket.getInputStream()));    
-            socOut= new PrintStream(echoSocket.getOutputStream());
+            echoSocket = new Socket(ip_lo, port);
+            socIn = new BufferedReader(new InputStreamReader(echoSocket.getInputStream()));
+            socOut = new PrintStream(echoSocket.getOutputStream());
             stdIn = new BufferedReader(new InputStreamReader(System.in));
         } catch (UnknownHostException e) {
             System.err.println("Don't know about host:" + ip_mul);
             System.exit(1);
         } catch (IOException e) {
-            System.err.println("Couldn't get I/O for "
-                                + "the connection to:"+ ip_mul);
+            System.err.println("Couldn't get I/O for " + "the connection to:" + ip_mul);
             System.exit(1);
         }
     }
 
     /**
      * Ask user's username
+     * 
      * @throws IOException
      */
-    public static void connectUser() throws IOException{
+    public static void connectUser() throws IOException {
         String command = null;
         String response = null;
         boolean connected = false;
 
-        while (!connected)
-        {
+        while (!connected) {
             // ask client username in stdin
             System.out.print("Votre nom d'utilisateur : ");
             username = stdIn.readLine();
@@ -210,18 +205,16 @@ public class EchoClient {
             // print users or error message
             if (users.length > 0) {
                 System.out.println("Liste des utilisateurs connectés :");
-                for (String u: users) {
+                for (String u : users) {
                     System.out.println("- " + u);
                 }
                 System.out.println(); // spacing
             } else {
                 System.out.println("Aucun utilisateur n'est connecté");
             }
-           
+
         } catch (IOException e) {
             Logger.error("EchoClient_showConnectedUsers", e.getMessage());
         }
     }
 }
-
-

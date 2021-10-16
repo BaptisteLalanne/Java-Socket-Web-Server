@@ -1,8 +1,9 @@
 JFLAGS = -g
+DEPENDENCIES = -cp ".:./lib/json-simple-1.1.1.jar"
 JC = javac
 .SUFFIXES: .java .class
 .java.class:
-	$(JC) $(JFLAGS) $*.java
+	$(JC) $(JFLAGS) ${DEPENDENCIES} $*.java
 
 CLASSES = \
 	stream/ClientThread.java \

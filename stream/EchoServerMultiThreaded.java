@@ -14,25 +14,25 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Random;
 
-
-public class EchoServerMultiThreaded  {
+public class EchoServerMultiThreaded {
 
 	private static String ip_lo = "localhost";
 	private static String ip_mul;
 	private static Integer port;
-	private static HashMap <String, Socket> listeUtilisateur = new HashMap<String, Socket>();
+	private static HashMap<String, Socket> listeUtilisateur = new HashMap<String, Socket>();
 	private static SenderServer generalNotificationsMulticast;
 	private static Integer maxPort;
-	private static HashMap <String, Room> listeRoom = new HashMap<String, Room>();
-  
- 	/**
-  	* main method
-	* @param EchoServer port
-  	* 
-  	**/
-	public static void main(String args[]){ 
-        ServerSocket listenSocket;
-        
+	private static HashMap<String, Room> listeRoom = new HashMap<String, Room>();
+
+	/**
+	 * main method
+	 * 
+	 * @param EchoServer port
+	 * 
+	 **/
+	public static void main(String args[]) {
+		ServerSocket listenSocket;
+
 		// sanity check
 		if (args.length != 2) {
 			System.out.println("Usage: java EchoServer <EchoServer ip> <EchoServer port>");
@@ -80,6 +80,7 @@ public class EchoServerMultiThreaded  {
 
 	/**
 	 * Send message to notify that a user just connects
+	 * 
 	 * @param connected_username user who just connects
 	 * @throws IOException
 	 */
@@ -89,26 +90,28 @@ public class EchoServerMultiThreaded  {
 
 	/**
 	 * If needed, create a room for two users.
+	 * 
 	 * @param username1 the client asking for a room (current user)
 	 * @param username2 the receiver
 	 * @return the port of corresponding room.
 	 */
-	public static String manageRoom(String username1, String username2){
+	public static String manageRoom(String username1, String username2) {
 		String output;
 
 		/**
 		 * 
-		 * Output doit renvoyer le port de connexion pour la conversation
-		 * Ce n'est qu'ensuite que le client pourra se connecter à la room
+		 * Output doit renvoyer le port de connexion pour la conversation Ce n'est
+		 * qu'ensuite que le client pourra se connecter à la room
 		 */
-		
-		// TODO: key must be the concatenation of SORTED users
-		if(!listeRoom.containsKey(username1+"_"+username2)){
+
+		String roomName = (username1.compareTo(username2) >= 0) ? username1 + "_" + username2
+				: username2 + "_" + username1;
+		if (!listeRoom.containsKey(roomName)) {
 			// room doesn't exist, create it
-			output = createRoom(username1,username2);
-		}else {
+			output = createRoom(roomName);
+		} else {
 			// room exists
-			Room roomToJoin =  listeRoom.get(username1+"_"+username2);
+			Room roomToJoin = listeRoom.get(roomName);
 			output = Integer.toString(roomToJoin.port);
 		}
 
@@ -116,57 +119,61 @@ public class EchoServerMultiThreaded  {
 	}
 
 	/**
-	 * Connect a user to a created room.
-	 * Accepts its socket.
+	 * Connect a user to a created room. Accepts its socket.
+	 * 
 	 * @param username1 the client asking for a room (current user)
 	 * @param username2 the receiver
 	 * @return the port of corresponding room.
 	 */
-	public static String connectRoom(String username1, String username2){
-		String output= "";
-		try{
-			
+	public static String connectRoom(String username1, String username2) {
+		String output = "";
+		String roomName = (username1.compareTo(username2) >= 0) ? username1 + "_" + username2
+				: username2 + "_" + username1;
+		try {
+
 			// getting room
-			Room roomToJoin =  listeRoom.get(username1+"_"+username2);
+			Room roomToJoin = listeRoom.get(roomName);
 
 			// getting room sockets
 			ServerSocket clientSocketToJoin = roomToJoin.serversocket;
 			Socket clientSocket = clientSocketToJoin.accept();
 			SenderServer clientMulticastToListen = roomToJoin.multicast;
-			Logger.debug("EchoServerMultiThreaded_connectRoom", "Connexion from:" + clientSocket.getInetAddress() + " with port " + roomToJoin.port);
+			Logger.debug("EchoServerMultiThreaded_connectRoom",
+					"Connexion from:" + clientSocket.getInetAddress() + " with port " + roomToJoin.port);
 
 			// manage room in another thread
-			ClientThread ct = new ClientThread(clientSocket, clientMulticastToListen);
+			ClientThread ct = new ClientThread(clientSocket, clientMulticastToListen,username1,roomName);
 			ct.start();
 
 			output = "Room joined !";
 		} catch (Exception e) {
 			Logger.error("EchoServerMultiThreaded_connectRoom", e.getMessage());
-        }
+		}
 		return output;
 	}
 
 	/**
 	 * Create room for two users.
+	 * 
 	 * @param username1 the client asking for a room (current user)
 	 * @param username2 the receiver
 	 * @return the port of corresponding room.
 	 */
-	public static String createRoom(String username1, String username2){
+	public static String createRoom(String roomName) {
 		String output = "";
 		try {
 
 			// create ServerSocket by searching next available port
 			boolean portToFind = true;
-			int portDepart = EchoServerMultiThreaded.maxPort + 1 ;
+			int portDepart = EchoServerMultiThreaded.maxPort + 1;
 			ServerSocket listenSocket = null;
-			while(portToFind){
-				try{
+			while (portToFind) {
+				try {
 					listenSocket = new ServerSocket(portDepart);
 					EchoServerMultiThreaded.maxPort = portDepart;
 					Logger.debug("EchoServerMultiThreaded_connectRoom", "Server ready");
 					portToFind = false;
-				} catch( IOException e ){
+				} catch (IOException e) {
 					portDepart++;
 				}
 			}
@@ -175,9 +182,8 @@ public class EchoServerMultiThreaded  {
 			SenderServer listenMulticast = new SenderServer(ip_mul, port);
 
 			// create room and push instance to static data structure
-			String roomName = username1+"_"+username2;
-			Room newRoom = new Room(listenSocket,listenMulticast,portDepart);
-			listeRoom.put(roomName,newRoom);
+			Room newRoom = new Room(listenSocket, listenMulticast, portDepart);
+			listeRoom.put(roomName, newRoom);
 
 			output = Integer.toString(portDepart);
 		} catch (Exception e) {
@@ -188,15 +194,16 @@ public class EchoServerMultiThreaded  {
 
 	/**
 	 * Add user to list if not already inside.
-	 * @param name name of new user
+	 * 
+	 * @param name   name of new user
 	 * @param socket user's socket
 	 * @return whether user has been added or not.
 	 */
-	public static boolean addUser(String name, Socket socket){
+	public static boolean addUser(String name, Socket socket) {
 		boolean output = false;
 
 		// check if user already connected
-		if(!listeUtilisateur.containsKey(name)){
+		if (!listeUtilisateur.containsKey(name)) {
 			listeUtilisateur.put(name, socket);
 			output = true;
 		}
@@ -206,6 +213,7 @@ public class EchoServerMultiThreaded  {
 
 	/**
 	 * Get all connected users.
+	 * 
 	 * @return serialized users list.
 	 */
 	public static String getConnectedUsers() {
@@ -215,12 +223,12 @@ public class EchoServerMultiThreaded  {
 
 	/**
 	 * Password generation method.
+	 * 
 	 * @param len length of generated password
 	 * @return generated passwords
 	 */
 	public static String generateRandomPassword(int len) {
-		String chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghi"
-		+"jklmnopqrstuvwxyz!@#$%&";
+		String chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghi" + "jklmnopqrstuvwxyz!@#$%&";
 		Random rnd = new Random();
 		StringBuilder sb = new StringBuilder(len);
 		for (int i = 0; i < len; i++)
@@ -228,5 +236,3 @@ public class EchoServerMultiThreaded  {
 		return sb.toString();
 	}
 }
-
-  

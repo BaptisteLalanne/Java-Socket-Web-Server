@@ -1,6 +1,5 @@
 /***
  * 
- * Author: Baptiste Lalanne
  */
 package stream;
 
