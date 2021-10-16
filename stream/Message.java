@@ -1,6 +1,7 @@
 package stream;
 
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Reader;
 import java.time.LocalDate;
@@ -42,16 +43,27 @@ public class Message {
         jsonObject.put("minute", minute);
         jsonObject.put("sender", sender);
         jsonObject.put("content", message);
+        Logger.debug("Message_saveMessage", "Trying to save: " +message);
         JSONParser parser = new JSONParser();
 
-        try (Reader reader = new FileReader("../data/conversation.json")) {
+        try (Reader reader = new FileReader("./data/conversation.json")) {
             JSONObject listeRoom = (JSONObject) parser.parse(reader);
-            JSONObject messagesRoom = (JSONObject) listeRoom.get(roomName);
-            if(messagesRoom != null){
-                messagesRoom.put("message", jsonObject);
-            } else {
-                listeRoom.put(roomName, jsonObject);
+            JSONObject room = (JSONObject) listeRoom.get(roomName);
+            if(room == null){
+                room = new JSONObject();
+                JSONArray messages = new JSONArray();
+                room.put("messages",messages);
             }
+            JSONArray messagesRoom = (JSONArray) room.get("messages");
+            messagesRoom.add(jsonObject);
+            room.put("messages",messagesRoom);
+            listeRoom.put(roomName, room);
+            FileWriter file = new FileWriter("./data/conversation.json");
+            file.write(listeRoom.toJSONString());
+            file.flush();
+            file.close();
+            Logger.debug("Message_saveMessage", "Message saved");
+            
         } catch (IOException e) {
             Logger.error("Message_saveMessage", e.getMessage());
         } catch (ParseException e) {
