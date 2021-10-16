@@ -45,6 +45,10 @@ public class EchoClient {
         // create socket to communicate with server's main port
         initSocket();
 
+        GUI gui = new GUI();
+
+        /*
+
         // manage connection by username
         connectUser();
 
@@ -90,6 +94,9 @@ public class EchoClient {
         // closing sockets
         echoSocket.close();
         multicast_public.close();
+
+        */
+
     }
 
     /**
