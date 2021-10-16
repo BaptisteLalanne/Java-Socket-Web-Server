@@ -6,6 +6,7 @@ JC = javac
 	$(JC) $(JFLAGS) ${DEPENDENCIES} $*.java
 
 CLASSES = \
+	stream/Message.java \
 	stream/ClientThread.java \
     stream/EchoClient.java \
 	stream/EchoServerMultiThreaded.java \
