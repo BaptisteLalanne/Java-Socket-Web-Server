@@ -162,38 +162,33 @@ public class EchoClient {
      * 
      * @throws IOException
      */
-    public static void connectUser() throws IOException {
-        String command = null;
-        String response = null;
+    public static boolean connectUser(String _username) throws IOException {
+        
         boolean connected = false;
+        String response = null;
+        String command = "UsernameIs " + _username;
 
-        while (!connected) {
-            // ask client username in stdin
-            System.out.print("Votre nom d'utilisateur : ");
-            username = stdIn.readLine();
-            command = "UsernameIs " + username;
+        // send username to stdin
+        try {
+            socOut.println(command);
+        } catch (Exception e) {
+            Logger.error("EchoClient_main", "while sending: " + e.getMessage());
+        }
 
-            // send username to stdin
-            try {
-                socOut.println(command);
-            } catch (Exception e) {
-                Logger.error("EchoClient_main", "while sending: " + e.getMessage());
-            }
-
-            // get response from server
-            try {
-                response = socIn.readLine();
-                Logger.debug("EchoClient_main", "username_response: " + response);
-            } catch (IOException e) {
-                Logger.error("EchoClient_main", "while receiving: " + e.getMessage());
-            }
-
+        // get response from server
+        try {
+            response = socIn.readLine();
+            Logger.debug("EchoClient_main", "username_response: " + response);
+            
             // analyse response (OK or KO)
             if (response.equals("success"))
                 connected = true;
-            else
-                System.out.println("Ce nom d'utilisateur est incorrect ou deja utilise.");
+            
+        } catch (IOException e) {
+            Logger.error("EchoClient_main", "while receiving: " + e.getMessage());
         }
+
+        return connected;
     }
 
     /**
