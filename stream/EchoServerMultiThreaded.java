@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Random;
+import java.util.concurrent.Semaphore;
 
 public class EchoServerMultiThreaded {
 
@@ -23,6 +24,7 @@ public class EchoServerMultiThreaded {
 	private static SenderServer generalNotificationsMulticast;
 	private static Integer maxPort;
 	private static HashMap<String, Room> listeRoom = new HashMap<String, Room>();
+	public static Semaphore mutexConversation = new Semaphore(1);
 
 	/**
 	 * main method
