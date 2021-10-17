@@ -6,25 +6,48 @@ import java.net.MulticastSocket;
 
 public class MulticastThread extends Thread {
     private MulticastSocket multicast = null;
+    private GUI gui = null;
 
     /**
      * Default constructor
      * 
      * @param multicast multicast socket
      */
+    public MulticastThread(MulticastSocket multicast, GUI gui) {
+        this.multicast = multicast;
+        this.gui = gui;
+    }
+
     public MulticastThread(MulticastSocket multicast) {
         this.multicast = multicast;
+        this.gui = null;
     }
 
     /**
      * Infinite loop waiting and printing received messages.
      */
     public void run() {
+        String line = "start";
         while (true) {
             try {
-                printMessage();
+                line = getMessage();
+                Logger.debug("MulticastThread_run", "line: " + line);
+
+                if (line.contains("NEWCONNECTION")) {
+                    Logger.debug("MulticastThread_run", "NEWCONNECTION command");
+                    String new_user = line.split(" ")[1];
+                    gui.addUser(new_user);
+                    gui.refreshUsers();
+                }
+                
+                else {
+                    // message received
+                    Logger.debug("MulticastThread_run", "message received: " + line);
+                    gui.showMessage(line + "\n");
+                }
+
             } catch (IOException e) {
-                Logger.error("ReceiverClientMulticast", e.getMessage());
+                Logger.error("MulticastThread_run", e.getMessage());
             }
         }
     }
@@ -34,7 +57,7 @@ public class MulticastThread extends Thread {
      * 
      * @throws IOException
      */
-    public void printMessage() throws IOException {
+    public String getMessage() throws IOException {
 
         // make datagram packet to receive
         byte[] message = new byte[256];
@@ -42,7 +65,8 @@ public class MulticastThread extends Thread {
 
         // recieve the packet
         multicast.receive(packet);
-        System.out.println(new String(packet.getData()));
+
+        return new String(packet.getData());
     }
 
     /**

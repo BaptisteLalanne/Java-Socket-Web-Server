@@ -10,6 +10,7 @@ package stream;
 import java.io.*;
 import java.net.*;
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.List;
 
 public class ClientThread extends Thread {
@@ -115,11 +116,16 @@ public class ClientThread extends Thread {
 						Logger.debug("ClientThread_run", "output through Socket: " + output);
 						// socOut.println(output);
 
-					} else {
+					} else if (line.contains("MESSAGE")) {
 						Logger.debug("ClientThread_run", "MESSAGE command");
-						Logger.debug("ClientThread_run", "input + output through MulticastSocket: " + line);
+						Logger.debug("ClientThread_run", "input through MulticastSocket: " + line);
 
 						Logger.debug("ClientThread_run", "t_id: " + thread_id);
+
+						String[] splitted = line.split(" ");
+						String str_message = String.join(" ", Arrays.copyOfRange(splitted, 1, splitted.length));
+
+						Logger.debug("ClientThread_run", "str_message: " + str_message);
 
 						if (multicast == null) {
 							Logger.warning("ClientThread_run", "multicast is null!");
@@ -127,7 +133,7 @@ public class ClientThread extends Thread {
 							LocalDateTime now = LocalDateTime.now();
 							// Utilisation de la classe Message qui s'occupe de la mise en forme
 							// et de la persistance des messages
-							Message message = new Message(now,line,wanted_username,roomName);
+							Message message = new Message(now,str_message,wanted_username,roomName);
 							multicast.send(message.getMessage());
 							// Utilisation d'un thread pour la persistance des données
 							message.run();
