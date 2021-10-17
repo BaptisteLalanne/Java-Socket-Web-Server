@@ -179,7 +179,10 @@ public class EchoClient {
     /**
      * Print all connected users (in any room)
      */
-    public static void showConnectedUsers() {
+    public static String[] getConnectedUsers() {
+
+        String[] users = {};
+
         try {
             // send command to server
             String command = "GetUsers";
@@ -187,21 +190,14 @@ public class EchoClient {
 
             // get response (users list as serialized string)
             String response = socIn.readLine();
-            String[] users = response.split("_;_");
+            users = response.split("_;_");
 
-            // print users or error message
-            if (users.length > 0) {
-                System.out.println("Liste des utilisateurs connectés :");
-                for (String u : users) {
-                    System.out.println("- " + u);
-                }
-                System.out.println(); // spacing
-            } else {
-                System.out.println("Aucun utilisateur n'est connecté");
-            }
+            Logger.debug("EchoClient_getConnectedUsers", "nb_users: " + String.valueOf(users.length));
 
         } catch (IOException e) {
             Logger.error("EchoClient_showConnectedUsers", e.getMessage());
         }
+
+        return users;
     }
 }

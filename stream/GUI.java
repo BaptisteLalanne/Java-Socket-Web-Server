@@ -175,6 +175,12 @@ public class GUI extends JFrame {
       this.users.add(_user);
    }
 
+   public void setUsers(String[] _users) {
+      for (String u: _users) {
+         this.users.add(u);
+      }
+   }
+
    public void refreshUsers() {
       
       chat_users_model.removeAllElements();
@@ -190,6 +196,14 @@ public class GUI extends JFrame {
    public void switchToChatPanel() {
       container.removeAll();
       container.add(pan_chat);
+
+      String[] connected = EchoClient.getConnectedUsers();
+      setUsers(connected);
+      refreshUsers();
+
+      Logger.debug("GUI_switchToChatPanel", "connected_length: " + String.valueOf(connected.length));
+      Logger.debug("GUI_switchToChatPanel", "users_length: " + String.valueOf(users.size()));
+      Logger.debug("GUI_switchToChatPanel", "model_length: " + String.valueOf(chat_users_model.getSize()));
 
       pan_chat.repaint();
       pan_chat.revalidate();
