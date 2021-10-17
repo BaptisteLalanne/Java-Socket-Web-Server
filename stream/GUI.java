@@ -141,6 +141,15 @@ public class GUI extends JFrame {
       chat_users_list.setLayoutOrientation(JList.VERTICAL_WRAP );
       chat_users_list.setVisibleRowCount(-1);
       chat_users_list.setBounds(10, 10, 130, 450);
+      chat_users_list.addMouseListener(new MouseAdapter() {
+         public void mouseClicked(MouseEvent e) {
+            Logger.debug("GUI_ListMouseAdapter", e.toString());
+            Logger.debug("GUI_ListMouseAdapter", e.getSource().toString());
+            // TODO: join conversation
+ 
+
+         }
+      });
 
       // create textarea
       chat_infos_textarea = new JTextArea();

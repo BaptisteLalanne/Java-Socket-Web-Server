@@ -27,7 +27,7 @@ public class MulticastThread extends Thread {
      * Infinite loop waiting and printing received messages.
      */
     public void run() {
-        String line = null;
+        String line = "start";
         while (true) {
             try {
                 line = getMessage();

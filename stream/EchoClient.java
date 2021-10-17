@@ -92,6 +92,9 @@ public class EchoClient {
          * : 1. Récupérer le port 2. Se connecter au socket du port
          */
 
+        String command = "joinConversation " + receiver;
+        socOut.println(command);
+
         // Reçoit le nouveau port donné par le serveur pour la conversation
         int wanted_port = Integer.parseInt(socIn.readLine());
 
@@ -199,5 +202,9 @@ public class EchoClient {
         }
 
         return users;
+    }
+
+    public static void disconnect() {
+        // TODO: send message to server to notify disconnection
     }
 }
