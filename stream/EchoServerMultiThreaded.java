@@ -104,16 +104,35 @@ public class EchoServerMultiThreaded {
 		 * qu'ensuite que le client pourra se connecter à la room
 		 */
 
-		String roomName = (username1.compareTo(username2) >= 0) ? username1 + "_" + username2
-				: username2 + "_" + username1;
-		if (!listeRoom.containsKey(roomName)) {
+		String roomName = (username1.trim().compareTo(username2.trim()) >= 0) ? username1.trim() + "_" + username2.trim()
+				: username2.trim() + "_" + username1.trim();
+
+
+		Logger.warning("EchoServerMultiThreaded_manageRoom", "Looking for room '" + roomName + "'");
+		Logger.warning("EchoServerMultiThreaded_manageRoom", "length: " + String.valueOf(roomName.length()));
+
+		boolean alreadyExists = false;
+		for (String k: listeRoom.keySet()) {
+			Integer comp = k.compareTo(roomName);
+			Logger.warning("EchoServerMultiThreaded_manageRoom", "Testing '" + k.trim() + "' -> " + String.valueOf(comp));
+			Logger.warning("EchoServerMultiThreaded_manageRoom", "length: " + String.valueOf(k.trim().length()));
+			if (comp == 0) {
+				alreadyExists = true;
+				Logger.warning("EchoServerMultiThreaded_manageRoom", "Room found!");
+			}
+		}
+		
+		if (!alreadyExists) {
 			// room doesn't exist, create it
+			Logger.warning("EchoServerMultiThreaded_manageRoom", "Creating room '" + roomName + "'");
 			output = createRoom(roomName);
 		} else {
 			// room exists
 			Room roomToJoin = listeRoom.get(roomName);
 			output = Integer.toString(roomToJoin.port);
 		}
+
+		Logger.warning("EchoServerMultiThreaded_manageRoom", "port:" + output);
 
 		return output;
 	}
@@ -127,8 +146,8 @@ public class EchoServerMultiThreaded {
 	 */
 	public static String connectRoom(String username1, String username2) {
 		String output = "";
-		String roomName = (username1.compareTo(username2) >= 0) ? username1 + "_" + username2
-				: username2 + "_" + username1;
+		String roomName = (username1.trim().compareTo(username2.trim()) >= 0) ? username1.trim() + "_" + username2.trim()
+				: username2.trim() + "_" + username1.trim();
 		try {
 
 			// getting room
@@ -142,7 +161,7 @@ public class EchoServerMultiThreaded {
 					"Connexion from:" + clientSocket.getInetAddress() + " with port " + roomToJoin.port);
 
 			// manage room in another thread
-			ClientThread ct = new ClientThread(clientSocket, clientMulticastToListen,username1,roomName);
+			ClientThread ct = new ClientThread(clientSocket, clientMulticastToListen,username1.trim(),roomName);
 			ct.start();
 
 			output = "Room joined !";
@@ -171,7 +190,7 @@ public class EchoServerMultiThreaded {
 				try {
 					listenSocket = new ServerSocket(portDepart);
 					EchoServerMultiThreaded.maxPort = portDepart;
-					Logger.debug("EchoServerMultiThreaded_connectRoom", "Server ready");
+					Logger.debug("EchoServerMultiThreaded_createRoom", "Server ready");
 					portToFind = false;
 				} catch (IOException e) {
 					portDepart++;
@@ -179,10 +198,12 @@ public class EchoServerMultiThreaded {
 			}
 
 			// create multicast socket for room
-			SenderServer listenMulticast = new SenderServer(ip_mul, port);
+			SenderServer listenMulticast = new SenderServer(ip_mul, portDepart);
 
 			// create room and push instance to static data structure
 			Room newRoom = new Room(listenSocket, listenMulticast, portDepart);
+
+			Logger.debug("EchoServerMultiThreaded_createRoom", "added room: '" + roomName + "' (length " + String.valueOf(roomName.length()) + " )");
 			listeRoom.put(roomName, newRoom);
 
 			output = Integer.toString(portDepart);

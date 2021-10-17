@@ -39,9 +39,15 @@ public class MulticastThread extends Thread {
                     gui.addUser(new_user);
                     gui.refreshUsers();
                 }
+                
+                else {
+                    // message received
+                    Logger.debug("MulticastThread_run", "message received: " + line);
+                    gui.showMessage(line + "\n");
+                }
 
             } catch (IOException e) {
-                Logger.error("ReceiverClientMulticast", e.getMessage());
+                Logger.error("MulticastThread_run", e.getMessage());
             }
         }
     }

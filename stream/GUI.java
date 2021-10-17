@@ -131,7 +131,6 @@ public class GUI extends JFrame {
 
       pan_chat = new JPanel();
 
-
       setBackground(new Color(240, 240, 240));
 
       // create list model
@@ -145,9 +144,21 @@ public class GUI extends JFrame {
       chat_users_list.setBounds(10, 10, 130, 450);
       chat_users_list.addMouseListener(new MouseAdapter() {
          public void mouseClicked(MouseEvent e) {
-            chat_selected_username = chat_users_list.getSelectedValue().toString();
-            Logger.debug("GUI_MouseAdapter", "selected user: " + chat_selected_username);
-            // TODO: join conversation
+
+            // check if a new user is selected
+            String new_selected = chat_users_list.getSelectedValue().toString();
+            if (!new_selected.equals(chat_selected_username)) {
+               chat_selected_username = new_selected;
+               Logger.debug("GUI_MouseAdapter", "selected user: " + chat_selected_username);
+               boolean joined = EchoClient.joinConversation(chat_selected_username);
+               Logger.debug("GUI_MouseAdapter", "joined: " + String.valueOf(joined));
+               if (joined)
+                  resetMessageArea();
+               else {
+                  // TODO: display error message
+               }
+            }
+
          }
       });
 
@@ -166,6 +177,9 @@ public class GUI extends JFrame {
          @Override
             public void actionPerformed(ActionEvent e) {
                Logger.debug("GUI_actionPerformed", "send message button");
+               // TODO: check input
+               EchoClient.sendMessage(chat_input_textfield.getText());
+               
             }
       });
       chat_send_button.setBounds(670, 420, 120, 30);
@@ -192,15 +206,11 @@ public class GUI extends JFrame {
 
    public void refreshUsers() {
       
-
-      for (int i=0; i<chat_users_model.size(); i++)
-      {
+      for (int i=0; i<chat_users_model.size(); i++){
          if (chat_selected_index == null || i != chat_selected_index)
             chat_users_model.remove(i);
       }
       
-      Logger.debug("GUI_refreshUsers", "current user: " + EchoClient.username);
-
       for (String u: this.users) {
          if ((chat_selected_username == null || u != chat_selected_username) && !u.equals(EchoClient.username))
             chat_users_model.addElement(u);
@@ -218,14 +228,18 @@ public class GUI extends JFrame {
       setUsers(connected);
       refreshUsers();
 
-      Logger.debug("GUI_switchToChatPanel", "connected_length: " + String.valueOf(connected.length));
-      Logger.debug("GUI_switchToChatPanel", "users_length: " + String.valueOf(users.size()));
-      Logger.debug("GUI_switchToChatPanel", "model_length: " + String.valueOf(chat_users_model.getSize()));
-
       pan_chat.repaint();
       pan_chat.revalidate();
       container.revalidate();
 
       EchoClient.initMulticastPublic();
+   }
+
+   public void resetMessageArea() {
+      chat_infos_textarea.setText("");
+   }
+
+   public void showMessage(String _message) {
+      chat_infos_textarea.append(_message);
    }
 }

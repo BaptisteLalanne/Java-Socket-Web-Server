@@ -87,42 +87,59 @@ public class EchoClient {
     /**
      * Join a conversation (a room)
      */
-    public static void joinConversation(String receiver) throws IOException {
+    public static boolean joinConversation(String receiver) {
         /**
-         * : 1. Récupérer le port 2. Se connecter au socket du port
+         * 1. Récupérer le port
+         * 2. Se connecter au socket du port
          */
 
-        String command = "joinConversation " + receiver;
-        socOut.println(command);
+        boolean joined = false;
 
-        // Reçoit le nouveau port donné par le serveur pour la conversation
-        int wanted_port = Integer.parseInt(socIn.readLine());
+        try {
+            String command = "joinConversation " + receiver;
+            socOut.println(command);
+    
+            // Reçoit le nouveau port donné par le serveur pour la conversation
+            int wanted_port = Integer.parseInt(socIn.readLine());
+    
+            // Envoie la commande de connexion
+            Logger.warning("EchoClient_run", "readed: " + "ConnectRoom " + receiver);
+            socOut.println("ConnectRoom " + receiver);
+    
+            // Close le thread de l'ancien multicast
+            if (th_receiver != null) {
+                th_receiver.close();
+            }
 
-        // Envoie la commande de connexion
-        Logger.warning("EchoClient_run", "readed: " + "ConnectRoom " + receiver);
-        socOut.println("ConnectRoom " + receiver);
+            socOut.close();
+            socIn.close();
+            // stdIn.close();
+            echoSocket.close();
+            echoSocket = new Socket(ip_lo, wanted_port);
+    
+            socIn = new BufferedReader(new InputStreamReader(echoSocket.getInputStream()));
+            socOut = new PrintStream(echoSocket.getOutputStream());
+            // stdIn = new BufferedReader(new InputStreamReader(System.in));
+            multicast_private = new MulticastSocket(wanted_port);
+            multicast_private.joinGroup(InetAddress.getByName(ip_mul));
+    
+            // Ouvre un thread pour écouter le multicast
+            th_receiver = new MulticastThread(multicast_private, gui);
+            th_receiver.start();
+            Logger.debug("EchoClient_run", "Socket: " + echoSocket.toString());
+            Logger.debug("EchoClient_run", "MulticastSocket: " + multicast_private.toString());
 
-        // Close le thread de l'ancien multicast
-        if (th_receiver != null) {
-            th_receiver.close();
+            joined = true;
+
+        } catch (IOException e) {
+            Logger.error("EchoClient_joinConversation", e.getMessage());
         }
-        socOut.close();
-        socIn.close();
-        // stdIn.close();
-        echoSocket.close();
-        echoSocket = new Socket(ip_lo, wanted_port);
 
-        socIn = new BufferedReader(new InputStreamReader(echoSocket.getInputStream()));
-        socOut = new PrintStream(echoSocket.getOutputStream());
-        // stdIn = new BufferedReader(new InputStreamReader(System.in));
-        multicast_private = new MulticastSocket(wanted_port);
-        multicast_private.joinGroup(InetAddress.getByName(ip_mul));
+        return joined;
+    }
 
-        // Ouvre un thread pour écouter le multicast
-        th_receiver = new MulticastThread(multicast_private);
-        th_receiver.start();
-        Logger.debug("EchoClient_run", "Socket: " + echoSocket.toString());
-        Logger.debug("EchoClient_run", "MulticastSocket: " + multicast_private.toString());
+    public static void sendMessage(String _message) {
+        socOut.println("MESSAGE " + _message);
     }
 
     /**
