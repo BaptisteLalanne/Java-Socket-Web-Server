@@ -2,9 +2,12 @@ package stream;
 
 import java.io.*;
 import java.net.*;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
+import javax.swing.DefaultListModel;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -13,6 +16,7 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
+import javax.swing.ListSelectionModel;
 
 import java.awt.Container;
 import java.awt.BorderLayout;
@@ -28,6 +32,8 @@ import java.awt.event.WindowEvent;
 
 public class GUI extends JFrame { 
 
+   private List<String> users = new ArrayList<String>();
+
    // connection panel components
    private JPanel pan_connection;
    private JLabel connection_infos_label = null;
@@ -41,6 +47,7 @@ public class GUI extends JFrame {
    private JTextArea chat_infos_textarea = null;
    private JTextField chat_input_textfield = null;
    private JList chat_users_list = null;
+   private DefaultListModel chat_users_model = null;
 
    private Container container;
 
@@ -62,7 +69,7 @@ public class GUI extends JFrame {
       container.add(pan_connection);
 
       setVisible(true);
-   } 
+   }
 
    public void initPanelConnection() {
       
@@ -98,14 +105,7 @@ public class GUI extends JFrame {
 
                if (res) {
                   Logger.debug("GUI_actionPerformed", "connection success");
-
-                  container.removeAll();
-                  container.add(pan_chat);
-
-                  pan_chat.repaint();
-                  pan_chat.revalidate();
-                  container.revalidate();
-
+                  switchToChatPanel();
                } else {
                   Logger.debug("GUI_actionPerformed", "connection fail");
                   connection_status_label.setText("Le nom d'utilisateur est déjà utilisé ou est incorrect");
@@ -132,8 +132,14 @@ public class GUI extends JFrame {
 
       setBackground(new Color(240, 240, 240));
 
+      // create list model
+      chat_users_model = new DefaultListModel();
+
       // create list
-      chat_users_list = new JList();
+      chat_users_list = new JList(chat_users_model);
+      chat_users_list.setSelectionMode(ListSelectionModel.SINGLE_INTERVAL_SELECTION);
+      chat_users_list.setLayoutOrientation(JList.VERTICAL_WRAP );
+      chat_users_list.setVisibleRowCount(-1);
       chat_users_list.setBounds(10, 10, 130, 450);
 
       // create textarea
@@ -165,9 +171,30 @@ public class GUI extends JFrame {
 
    }
 
-   public void actionPerformed(ActionEvent e)
-   {
-      Object source = e.getSource();
-      Logger.debug("GUI_actionPerformed", source.toString());
+   public void addUser(String _user) {
+      this.users.add(_user);
+   }
+
+   public void refreshUsers() {
+      
+      chat_users_model.removeAllElements();
+
+      for (String u: this.users) {
+         chat_users_model.addElement(u);
+      }
+
+      pan_chat.repaint();
+      pan_chat.revalidate();
+   }
+
+   public void switchToChatPanel() {
+      container.removeAll();
+      container.add(pan_chat);
+
+      pan_chat.repaint();
+      pan_chat.revalidate();
+      container.revalidate();
+
+      EchoClient.initMulticastPublic();
    }
 }

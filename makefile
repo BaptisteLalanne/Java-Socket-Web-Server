@@ -14,9 +14,7 @@ CLASSES = \
 	stream/Logger.java \
 	stream/MulticastThread.java \
 	stream/Room.java \
-	stream/SenderServer.java \
-	stream/PanelChat.java \
-	stream/PanelConnection.java
+	stream/SenderServer.java
 
 
 default: classes

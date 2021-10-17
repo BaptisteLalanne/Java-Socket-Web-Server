@@ -27,6 +27,8 @@ public class EchoClient {
     public static String ip_mul = null;
     public static Integer port = null;
 
+    public static GUI gui = null;
+
     /**
      * main method
      **/
@@ -45,58 +47,41 @@ public class EchoClient {
         // create socket to communicate with server's main port
         initSocket();
 
-        GUI gui = new GUI();
+        gui = new GUI();
+    }
 
-        /*
+    public static void initMulticastPublic() {
 
-        // manage connection by username
-        connectUser();
+        try {
+            // init multicast socket for general notifications
+            multicast_public = new MulticastSocket(port);
+            multicast_public.joinGroup(InetAddress.getByName(ip_mul));
 
-        // friendly message <3
-        System.out.println("Bonjour " + username);
-        showConnectedUsers();
-
-        // init multicast socket for general notifications
-        multicast_public = new MulticastSocket(port);
-        multicast_public.joinGroup(InetAddress.getByName(ip_mul));
-
-        // create thread for general notifications
-        th_general = new MulticastThread(multicast_public);
-        th_general.start();
-
-        String line;
-
-        // main loop of program
-        while (true) {
-
-            // get user input
-            line = stdIn.readLine();
-            Logger.warning("EchoClient_run", "readed: " + line);
-
-            // check if user wants to exit
-            if (line.equals("."))
-                break;
-
-            // send user input (it's a command)
-            socOut.println(line);
-
-            if (line.contains("joinConversation")) {
-                String wanted_receiver = line.split(" ")[1];
-                joinConversation(wanted_receiver);
-            }
+            // create thread for general notifications
+            th_general = new MulticastThread(multicast_public, gui);
+            th_general.start();
+        } catch (IOException e) {
+            Logger.error("EchoClient_initMulticastPublic", e.getMessage());
         }
 
-        // closing buffers
-        socOut.close();
-        socIn.close();
-        stdIn.close();
+    }
 
-        // closing sockets
-        echoSocket.close();
-        multicast_public.close();
+    public static void destroySockets() {
 
-        */
+        try {
 
+            // closing buffers
+            socOut.close();
+            socIn.close();
+            stdIn.close();
+
+            // closing sockets
+            echoSocket.close();
+            multicast_public.close();
+
+        } catch (IOException e) {
+            Logger.error("EchoClient_destroySockets", "while closing sockets: " + e.getMessage());
+        }
     }
 
     /**

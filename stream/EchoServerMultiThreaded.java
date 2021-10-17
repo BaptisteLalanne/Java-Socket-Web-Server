@@ -85,7 +85,7 @@ public class EchoServerMultiThreaded {
 	 * @throws IOException
 	 */
 	public static void notifyConnection(String connected_username) throws IOException {
-		generalNotificationsMulticast.send(connected_username + " est connecté");
+		generalNotificationsMulticast.send("NEWCONNECTION " + connected_username);
 	}
 
 	/**
