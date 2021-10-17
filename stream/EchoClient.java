@@ -169,8 +169,10 @@ public class EchoClient {
             Logger.debug("EchoClient_main", "username_response: " + response);
             
             // analyse response (OK or KO)
-            if (response.equals("success"))
+            if (response.equals("success")) {
                 connected = true;
+                username = _username;
+            }
             
         } catch (IOException e) {
             Logger.error("EchoClient_main", "while receiving: " + e.getMessage());

@@ -48,6 +48,8 @@ public class GUI extends JFrame {
    private JTextField chat_input_textfield = null;
    private JList chat_users_list = null;
    private DefaultListModel chat_users_model = null;
+   private String chat_selected_username = null;
+   private Integer chat_selected_index = null;
 
    private Container container;
 
@@ -143,11 +145,9 @@ public class GUI extends JFrame {
       chat_users_list.setBounds(10, 10, 130, 450);
       chat_users_list.addMouseListener(new MouseAdapter() {
          public void mouseClicked(MouseEvent e) {
-            Logger.debug("GUI_ListMouseAdapter", e.toString());
-            Logger.debug("GUI_ListMouseAdapter", e.getSource().toString());
+            chat_selected_username = chat_users_list.getSelectedValue().toString();
+            Logger.debug("GUI_MouseAdapter", "selected user: " + chat_selected_username);
             // TODO: join conversation
- 
-
          }
       });
 
@@ -192,10 +192,18 @@ public class GUI extends JFrame {
 
    public void refreshUsers() {
       
-      chat_users_model.removeAllElements();
+
+      for (int i=0; i<chat_users_model.size(); i++)
+      {
+         if (chat_selected_index == null || i != chat_selected_index)
+            chat_users_model.remove(i);
+      }
+      
+      Logger.debug("GUI_refreshUsers", "current user: " + EchoClient.username);
 
       for (String u: this.users) {
-         chat_users_model.addElement(u);
+         if ((chat_selected_username == null || u != chat_selected_username) && !u.equals(EchoClient.username))
+            chat_users_model.addElement(u);
       }
 
       pan_chat.repaint();
