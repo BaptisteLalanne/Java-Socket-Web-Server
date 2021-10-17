@@ -10,6 +10,7 @@ package stream;
 import java.io.*;
 import java.net.*;
 import java.time.LocalDateTime;
+import java.util.List;
 
 public class ClientThread extends Thread {
 
@@ -58,7 +59,17 @@ public class ClientThread extends Thread {
 			PrintStream socOut = new PrintStream(clientSocket.getOutputStream());
 
 			String line = "init";
+			// joining a room means get old conversation messages
+			if(roomName != null){
+				List<String> oldConversation = Message.getHistoricConversation(roomName);
+				for (String message : oldConversation) {
+					socOut.println(message);
+				}
+				// signaling that all the old messages have been received
+				socOut.println("END OF OLD MESSAGES");
+				Logger.debug("ClientThread_run", "Old messages sent");
 
+			}
 			while (true && line != null) {
 
 				// waiting and reading client input

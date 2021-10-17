@@ -8,6 +8,7 @@ package stream;
 
 import java.io.*;
 import java.net.*;
+import java.util.List;
 
 public class EchoClient {
 
@@ -126,6 +127,12 @@ public class EchoClient {
         // Ouvre un thread pour écouter le multicast
         th_receiver = new MulticastThread(multicast_private);
         th_receiver.start();
+        // Recupère les anciens messages
+        String oldMessages = socIn.readLine();
+        while(!oldMessages.contains("END OF OLD MESSAGES")){
+            System.out.println(oldMessages);
+            oldMessages = socIn.readLine();
+        }
         Logger.debug("EchoClient_run", "Socket: " + echoSocket.toString());
         Logger.debug("EchoClient_run", "MulticastSocket: " + multicast_private.toString());
     }
