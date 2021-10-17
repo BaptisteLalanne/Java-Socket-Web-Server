@@ -12,7 +12,7 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
-public class Message {
+public class Message extends Thread{
     private int hour;
     private int minute;
     private String message;
@@ -34,10 +34,10 @@ public class Message {
 
     /**
      * Persist the message in a JSON file
-     * 
-     * 
+     * Use a mutex to write and read alone
+     * Thread only to persist the message
      */
-    public void saveMessage() {
+    public void run() {
         JSONObject jsonObject = new JSONObject();
         jsonObject.put("hour", hour);
         jsonObject.put("minute", minute);
@@ -45,29 +45,33 @@ public class Message {
         jsonObject.put("content", message);
         Logger.debug("Message_saveMessage", "Trying to save: " +message);
         JSONParser parser = new JSONParser();
-
-        try (Reader reader = new FileReader("./data/conversation.json")) {
-            JSONObject listeRoom = (JSONObject) parser.parse(reader);
-            JSONObject room = (JSONObject) listeRoom.get(roomName);
-            if(room == null){
-                room = new JSONObject();
-                JSONArray messages = new JSONArray();
-                room.put("messages",messages);
-            }
-            JSONArray messagesRoom = (JSONArray) room.get("messages");
-            messagesRoom.add(jsonObject);
-            room.put("messages",messagesRoom);
-            listeRoom.put(roomName, room);
-            FileWriter file = new FileWriter("./data/conversation.json");
-            file.write(listeRoom.toJSONString());
-            file.flush();
-            file.close();
-            Logger.debug("Message_saveMessage", "Message saved");
-            
-        } catch (IOException e) {
-            Logger.error("Message_saveMessage", e.getMessage());
-        } catch (ParseException e) {
-            Logger.error("Message_saveMessage", e.getMessage());
+        try {
+            EchoServerMultiThreaded.mutexConversation.acquire();
+            try (Reader reader = new FileReader("./data/conversation.json")) {
+                JSONObject listeRoom = (JSONObject) parser.parse(reader);
+                JSONObject room = (JSONObject) listeRoom.get(roomName);
+                if(room == null){
+                    room = new JSONObject();
+                    JSONArray messages = new JSONArray();
+                    room.put("messages",messages);
+                }
+                JSONArray messagesRoom = (JSONArray) room.get("messages");
+                messagesRoom.add(jsonObject);
+                room.put("messages",messagesRoom);
+                listeRoom.put(roomName, room);
+                FileWriter file = new FileWriter("./data/conversation.json");
+                file.write(listeRoom.toJSONString());
+                file.flush();
+                file.close();
+                Logger.debug("Message_saveMessage", "Message saved");
+                EchoServerMultiThreaded.mutexConversation.release();
+            } catch (IOException e) {
+                Logger.error("Message_saveMessage", e.getMessage());
+            } catch (ParseException e) {
+                Logger.error("Message_saveMessage", e.getMessage());
+            }    
+        } catch (InterruptedException e1) {
+            Logger.warning("Message_saveMessage", "Fail mutex "+ e1.getMessage());
         }
     }
 }

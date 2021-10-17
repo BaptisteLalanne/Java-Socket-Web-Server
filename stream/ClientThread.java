@@ -118,7 +118,8 @@ public class ClientThread extends Thread {
 							// et de la persistance des messages
 							Message message = new Message(now,line,wanted_username,roomName);
 							multicast.send(message.getMessage());
-							message.saveMessage();
+							// Utilisation d'un thread pour la persistance des données
+							message.run();
 						}
 						// socOut.println(line);
 					}
