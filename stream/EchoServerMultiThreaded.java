@@ -235,6 +235,24 @@ public class EchoServerMultiThreaded {
 	}
 
 	/**
+	 * Remove user to list
+	 * 
+	 * @param name   name of the user
+	 * @return whether user has been removed or not.
+	 */
+	public static boolean removeUser(String name) {
+		boolean output = false;
+
+		// check if user is still connected
+		if (listeUtilisateur.containsKey(name)) {
+			listeUtilisateur.remove(name);
+			output = true;
+		}
+
+		return output;
+	}
+
+	/**
 	 * Get all connected users.
 	 * 
 	 * @return serialized users list.

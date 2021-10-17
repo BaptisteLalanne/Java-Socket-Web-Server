@@ -20,6 +20,7 @@ public class ClientThread extends Thread {
 	private String wanted_username;
 	private String roomName;
 	private long thread_id;
+	private boolean removeUser = true;
 
 	ClientThread(Socket s, SenderServer multicast, String wanted_username, String roomName) {
 		this.clientSocket = s;
@@ -104,6 +105,7 @@ public class ClientThread extends Thread {
 						String wantedReceiver = line.split(" ")[1];
 						output = EchoServerMultiThreaded.connectRoom(wanted_username, wantedReceiver);
 						// Break ? todo : on garde le thread du main ou non?
+						
 						break;
 
 					} else if (line.contains("joinConversation")) {
@@ -140,6 +142,13 @@ public class ClientThread extends Thread {
 						}
 						// socOut.println(line);
 					}
+				}
+			}
+
+			if(line == null){
+				Boolean removed = EchoServerMultiThreaded.removeUser(wanted_username);
+				if(removed){
+					Logger.warning("ClientThread_run", "Remove user from connected user list "+ wanted_username);
 				}
 			}
 
