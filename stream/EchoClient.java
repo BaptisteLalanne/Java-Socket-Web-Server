@@ -111,6 +111,7 @@ public class EchoClient {
     
             // Close le thread de l'ancien multicast
             if (th_receiver != null) {
+                Logger.warning("EchoClient_run", "DELETING OLD MUTLICAST THREAD");
                 th_receiver.close();
             }
 

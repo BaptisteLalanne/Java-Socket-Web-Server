@@ -33,6 +33,7 @@ import java.awt.event.WindowEvent;
 public class GUI extends JFrame { 
 
    private List<String> users = new ArrayList<String>();
+   private List<String> connected_users = new ArrayList<String>();
 
    // connection panel components
    private JPanel pan_connection;
@@ -209,35 +210,62 @@ public class GUI extends JFrame {
 
    }
 
-   public void addUser(String _user) {
+   public void addConnectedUser(String _user) {
+
+      // TODO: check if user is registered
+      // if yes ->  connect (with *)
+
       int pos = this.users.indexOf(_user.trim());
-      this.users.set(pos, _user.trim()+" *");
+
+      if (pos == -1) {
+         // not registered
+         this.users.add(_user);
+      }
+
+      this.connected_users.add(_user);
    }
 
-   public void removeUser(String _user) {
-      // TODO: check if removed user is selected
-      this.users.remove(_user);
+   public void removeConnectedUser(String _user) {
+      this.connected_users.remove(_user);
    }
 
-   public void setUsers(String[] _users) {
+   public void setConnectedUsers(String[] _users) {
+      // _users : connected users
+
       for (String u: _users) {
+
          int pos = this.users.indexOf(u.trim());
-         if(!u.equals(EchoClient.username)){
-            this.users.set(pos, u.trim()+" *");
+
+         if (pos == -1) {
+            // new user, not registered
+            this.users.add(u);
          }
+
+         this.connected_users.add(u);
       }
    }
 
    public void refreshUsers() {
       
       for (int i=0; i<chat_users_model.size(); i++){
-         if (chat_selected_index == null || i != chat_selected_index)
+         if (chat_selected_index == null || i != chat_selected_index) {
             chat_users_model.remove(i);
+            Logger.warning("GUI_refreshUsers", "removing");
+         }
       }
       
       for (String u: this.users) {
-         if ((chat_selected_username == null || u != chat_selected_username) && !u.equals(EchoClient.username))
-            chat_users_model.addElement(u);
+         Logger.warning("GUI_refreshUsers", "adding : " + u);
+         if ((chat_selected_username == null || u != chat_selected_username) && !u.equals(EchoClient.username)) {
+            // check if connected
+            int pos = this.connected_users.indexOf(u.trim());
+            if (pos != -1) {
+               // connected
+               chat_users_model.addElement(u + '*');
+            } else {
+               chat_users_model.addElement(u);
+            }
+         }
       }
 
       pan_chat.repaint();
@@ -249,7 +277,7 @@ public class GUI extends JFrame {
       container.add(pan_chat);
 
       String[] connected = EchoClient.getConnectedUsers();
-      setUsers(connected);
+      setConnectedUsers(connected);
       refreshUsers();
 
       pan_chat.repaint();

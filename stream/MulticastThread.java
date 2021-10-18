@@ -28,7 +28,7 @@ public class MulticastThread extends Thread {
      */
     public void run() {
         String line = "start";
-        while (true) {
+        while (line != null) {
             try {
                 line = getMessage();
                 Logger.debug("MulticastThread_run", "line: " + line);
@@ -36,14 +36,14 @@ public class MulticastThread extends Thread {
                 if (line.contains("NEWCONNECTION")) {
                     Logger.debug("MulticastThread_run", "NEWCONNECTION command");
                     String new_user = line.split(" ")[1].trim();
-                    gui.addUser(new_user);
+                    gui.addConnectedUser(new_user);
                     gui.refreshUsers();
                 }
 
                 else if (line.contains("DISCONNECTION")) {
                     Logger.debug("MulticastThread_run", "DISCONNECTION command");
                     String old_user = line.split(" ")[1].trim();
-                    gui.removeUser(old_user);
+                    gui.removeConnectedUser(old_user);
                     gui.refreshUsers();
                 }
                 
@@ -54,7 +54,8 @@ public class MulticastThread extends Thread {
                 }
 
             } catch (IOException e) {
-                Logger.error("MulticastThread_run", e.getMessage());
+                // Logger.error("MulticastThread_run", e.getMessage());
+                break;
             }
         }
     }
