@@ -16,7 +16,7 @@ import org.json.simple.parser.ParseException;
 
 public class Message extends Thread{
     private int hour;
-    private int minute;
+    private String minute;
     private String message;
     private String sender;
     private String roomName;
@@ -24,14 +24,17 @@ public class Message extends Thread{
 
     public Message(LocalDateTime date, String message, String sender, String roomName) {
         this.hour = date.getHour();
-        this.minute = date.getMinute();
+        this.minute = "0"+date.getMinute();
+        if(this.minute.length()>2){
+            this.minute = this.minute.substring(1, 3);
+        }
         this.roomName = roomName;
         this.message = message;
         this.sender = sender;
     }
 
     public String getMessage() {
-        String outputLine = hour + "h" + minute + "-  " + sender + " : " + message;
+        String outputLine = this.hour + "h" + this.minute + "-  " + this.sender + " : " + this.message;
         return outputLine;
     }
 

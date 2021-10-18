@@ -254,31 +254,31 @@ public class GUI extends JFrame {
    public void refreshUsers() {
       
       Logger.debug("GUI_refreshUsers", "in jlist: " + String.valueOf(chat_users_model.size()));
-
-      int i = 0;
-      while (i < chat_users_model.size()) {
-         if (chat_selected_index == null || chat_users_model.get(i) != chat_selected_username) {
-            try {
-               chat_users_model.remove(i);
-            } catch(Exception e) {
-               Logger.error("GUI_refreshUsers", e.getMessage());
-            }
-            Logger.warning("GUI_refreshUsers", "removing");
-         } else {
-            i++;
-         }
-      }
       
       for (String u: this.users) {
-         Logger.warning("GUI_refreshUsers", "adding : " + u);
-         if ((chat_selected_username == null || u != chat_selected_username) && !u.equals(EchoClient.username)) {
+         if (!u.equals(EchoClient.username)) {
             // check if connected
-            int pos = this.connected_users.indexOf(u.trim());
-            if (pos != -1) {
+            if (this.connected_users.contains(u)) {
                // connected
-               chat_users_model.addElement(u + '*');
+               if(!this.chat_users_model.contains(u) && !this.chat_users_model.contains(u+'*')){
+                  chat_users_model.addElement(u + '*');
+               } else{
+                  int pos = chat_users_model.indexOf(u);
+                  if (pos == -1){
+                     pos = chat_users_model.indexOf(u+'*');
+                  }
+                  chat_users_model.set(pos, u+'*');
+               }
             } else {
-               chat_users_model.addElement(u);
+               if(!this.chat_users_model.contains(u) && !this.chat_users_model.contains(u+'*')){
+                  chat_users_model.addElement(u);
+               } else {
+                  int pos = chat_users_model.indexOf(u);
+                  if (pos == -1){
+                     pos = chat_users_model.indexOf(u+'*');
+                  }
+                  chat_users_model.set(pos, u);
+               }
             }
          }
       }
