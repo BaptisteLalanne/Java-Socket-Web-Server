@@ -55,6 +55,19 @@ public class GUI extends JFrame {
 
    public GUI(){
 
+      // adding data 
+      users.add("Baptiste");
+      users.add("Tom");
+      users.add("Emile");
+      users.add("Marie");
+      users.add("Fabien");
+      users.add("Thomas");
+      users.add("Batman");
+      users.add("Robin");
+      users.add("Martin");
+      users.add("Fabien");
+      users.add("Tristan");
+
       // window settings
       setLocationRelativeTo(null);
       setResizable(false);
@@ -197,7 +210,8 @@ public class GUI extends JFrame {
    }
 
    public void addUser(String _user) {
-      this.users.add(_user);
+      int pos = this.users.indexOf(_user.trim());
+      this.users.set(pos, _user.trim()+" *");
    }
 
    public void removeUser(String _user) {
@@ -207,7 +221,10 @@ public class GUI extends JFrame {
 
    public void setUsers(String[] _users) {
       for (String u: _users) {
-         this.users.add(u);
+         int pos = this.users.indexOf(u.trim());
+         if(!u.equals(EchoClient.username)){
+            this.users.set(pos, u.trim()+" *");
+         }
       }
    }
 
