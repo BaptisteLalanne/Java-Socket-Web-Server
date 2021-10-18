@@ -164,7 +164,13 @@ public class GUI extends JFrame {
             if (!new_selected.equals(chat_selected_username)) {
                chat_selected_username = new_selected;
                Logger.debug("GUI_MouseAdapter", "selected user: " + chat_selected_username);
-               boolean joined = EchoClient.joinConversation(chat_selected_username);
+
+               // TODO: check if connected (with *)
+               String real_username = chat_selected_username;
+               if (chat_selected_username.charAt(chat_selected_username.length()-1) == '*')
+                  real_username = chat_selected_username.substring(0, chat_selected_username.length() - 1);  
+
+               boolean joined = EchoClient.joinConversation(real_username);
                Logger.debug("GUI_MouseAdapter", "joined: " + String.valueOf(joined));
                if (joined) {
                   List<String> old_messages = EchoClient.getOldMessages();
@@ -247,10 +253,19 @@ public class GUI extends JFrame {
 
    public void refreshUsers() {
       
-      for (int i=0; i<chat_users_model.size(); i++){
-         if (chat_selected_index == null || i != chat_selected_index) {
-            chat_users_model.remove(i);
+      Logger.debug("GUI_refreshUsers", "in jlist: " + String.valueOf(chat_users_model.size()));
+
+      int i = 0;
+      while (i < chat_users_model.size()) {
+         if (chat_selected_index == null || chat_users_model.get(i) != chat_selected_username) {
+            try {
+               chat_users_model.remove(i);
+            } catch(Exception e) {
+               Logger.error("GUI_refreshUsers", e.getMessage());
+            }
             Logger.warning("GUI_refreshUsers", "removing");
+         } else {
+            i++;
          }
       }
       
