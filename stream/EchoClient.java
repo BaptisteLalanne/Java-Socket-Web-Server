@@ -8,6 +8,8 @@ package stream;
 
 import java.io.*;
 import java.net.*;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 public class EchoClient {
@@ -130,13 +132,6 @@ public class EchoClient {
             Logger.debug("EchoClient_run", "Socket: " + echoSocket.toString());
             Logger.debug("EchoClient_run", "MulticastSocket: " + multicast_private.toString());
 
-            // Recupère les anciens messages
-            String oldMessages = socIn.readLine();
-            while(!oldMessages.contains("END OF OLD MESSAGES")){
-                System.out.println(oldMessages);
-                oldMessages = socIn.readLine();
-            }
-
             joined = true;
 
         } catch (IOException e) {
@@ -144,6 +139,28 @@ public class EchoClient {
         }
 
         return joined;
+    }
+
+    public static List<String> getOldMessages() {
+
+        List<String> old_messages = new ArrayList<String>();
+
+        // Recupère les anciens messages
+        String oldMessage;
+        try {
+            oldMessage = socIn.readLine();
+            while(!oldMessage.contains("END OF OLD MESSAGES")){
+                // gui.showMessage(oldMessages);
+                // System.out.println(oldMessages);
+                old_messages.add(oldMessage);
+                oldMessage = socIn.readLine();
+            }
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+
+        return old_messages;
     }
 
     public static void sendMessage(String _message) {
@@ -231,7 +248,4 @@ public class EchoClient {
         return users;
     }
 
-    public static void disconnect() {
-        // TODO: send message to server to notify disconnection
-    }
 }

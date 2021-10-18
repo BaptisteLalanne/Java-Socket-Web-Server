@@ -35,8 +35,15 @@ public class MulticastThread extends Thread {
 
                 if (line.contains("NEWCONNECTION")) {
                     Logger.debug("MulticastThread_run", "NEWCONNECTION command");
-                    String new_user = line.split(" ")[1];
+                    String new_user = line.split(" ")[1].trim();
                     gui.addUser(new_user);
+                    gui.refreshUsers();
+                }
+
+                else if (line.contains("DISCONNECTION")) {
+                    Logger.debug("MulticastThread_run", "DISCONNECTION command");
+                    String old_user = line.split(" ")[1].trim();
+                    gui.removeUser(old_user);
                     gui.refreshUsers();
                 }
                 

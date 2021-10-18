@@ -90,6 +90,10 @@ public class EchoServerMultiThreaded {
 		generalNotificationsMulticast.send("NEWCONNECTION " + connected_username);
 	}
 
+	public static void notifyDisconnection(String connected_username) throws IOException {
+		generalNotificationsMulticast.send("DISCONNECTION " + connected_username);
+	}
+
 	/**
 	 * If needed, create a room for two users.
 	 * 

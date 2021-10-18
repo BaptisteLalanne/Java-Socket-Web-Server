@@ -149,6 +149,7 @@ public class ClientThread extends Thread {
 				Boolean removed = EchoServerMultiThreaded.removeUser(wanted_username);
 				if(removed){
 					Logger.warning("ClientThread_run", "Remove user from connected user list "+ wanted_username);
+					EchoServerMultiThreaded.notifyDisconnection(wanted_username);
 				}
 			}
 

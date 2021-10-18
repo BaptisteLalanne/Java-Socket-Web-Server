@@ -152,9 +152,11 @@ public class GUI extends JFrame {
                Logger.debug("GUI_MouseAdapter", "selected user: " + chat_selected_username);
                boolean joined = EchoClient.joinConversation(chat_selected_username);
                Logger.debug("GUI_MouseAdapter", "joined: " + String.valueOf(joined));
-               if (joined)
+               if (joined) {
+                  List<String> old_messages = EchoClient.getOldMessages();
                   resetMessageArea();
-               else {
+                  showMessages(old_messages);
+               } else {
                   // TODO: display error message
                }
             }
@@ -198,6 +200,11 @@ public class GUI extends JFrame {
       this.users.add(_user);
    }
 
+   public void removeUser(String _user) {
+      // TODO: check if removed user is selected
+      this.users.remove(_user);
+   }
+
    public void setUsers(String[] _users) {
       for (String u: _users) {
          this.users.add(u);
@@ -237,6 +244,11 @@ public class GUI extends JFrame {
 
    public void resetMessageArea() {
       chat_infos_textarea.setText("");
+   }
+
+   public void showMessages(List<String> _messages) {
+      for (String s: _messages)
+         showMessage(s + "\n");
    }
 
    public void showMessage(String _message) {
