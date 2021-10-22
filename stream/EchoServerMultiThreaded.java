@@ -24,6 +24,7 @@ public class EchoServerMultiThreaded {
 	private static SenderServer generalNotificationsMulticast;
 	private static Integer maxPort;
 	private static HashMap<String, Room> listeRoom = new HashMap<String, Room>();
+	private static HashMap<String, Room> listeGroups = new HashMap<String, Room>();
 	public static Semaphore mutexConversation = new Semaphore(1);
 
 	/**
@@ -78,6 +79,106 @@ public class EchoServerMultiThreaded {
 		} catch (IOException e) {
 			Logger.error("EchoServerMultiThreaded_initGeneralNotifications", e.getMessage());
 		}
+	}
+
+	public static String manageGroup(String room_name) {
+		String output;
+
+		/**
+		 * 
+		 * Output doit renvoyer le port de connexion pour la conversation Ce n'est
+		 * qu'ensuite que le client pourra se connecter à la room
+		 */
+
+		Logger.warning("EchoServerMultiThreaded_manageGroup", "Looking for group '" + room_name + "'");
+		Logger.warning("EchoServerMultiThreaded_manageGroup", "length: " + String.valueOf(room_name.length()));
+
+		boolean alreadyExists = false;
+		for (String k: listeGroups.keySet()) {
+			Integer comp = k.compareTo(room_name);
+			Logger.warning("EchoServerMultiThreaded_manageRoom", "Testing '" + k.trim() + "' -> " + String.valueOf(comp));
+			Logger.warning("EchoServerMultiThreaded_manageRoom", "length: " + String.valueOf(k.trim().length()));
+			if (comp == 0) {
+				alreadyExists = true;
+				Logger.warning("EchoServerMultiThreaded_manageRoom", "Room found!");
+			}
+		}
+		
+		if (!alreadyExists) {
+			// room doesn't exist, create it
+			Logger.warning("EchoServerMultiThreaded_manageRoom", "Creating room '" + room_name + "'");
+			output = createGroup(room_name);
+		} else {
+			// room exists
+			Room roomToJoin = listeGroups.get(room_name);
+			output = Integer.toString(roomToJoin.port);
+		}
+
+		Logger.warning("EchoServerMultiThreaded_manageRoom", "port:" + output);
+
+		return output;
+	}
+
+
+	public static String createGroup(String roomName) {
+		String output = "";
+		try {
+
+			// create ServerSocket by searching next available port
+			boolean portToFind = true;
+			int portDepart = EchoServerMultiThreaded.maxPort + 1;
+			ServerSocket listenSocket = null;
+			while (portToFind) {
+				try {
+					listenSocket = new ServerSocket(portDepart);
+					EchoServerMultiThreaded.maxPort = portDepart;
+					Logger.debug("EchoServerMultiThreaded_createRoom", "Server ready");
+					portToFind = false;
+				} catch (IOException e) {
+					portDepart++;
+				}
+			}
+
+			// create multicast socket for room
+			SenderServer listenMulticast = new SenderServer(ip_mul, portDepart);
+
+			// create room and push instance to static data structure
+			Room newRoom = new Room(listenSocket, listenMulticast, portDepart);
+
+			Logger.debug("EchoServerMultiThreaded_createRoom", "added room: '" + roomName + "' (length " + String.valueOf(roomName.length()) + " )");
+			listeGroups.put(roomName, newRoom);
+
+			output = Integer.toString(portDepart);
+		} catch (Exception e) {
+			Logger.error("EchoServerMultiThreaded_createRoom", e.getMessage());
+		}
+		return output;
+	}
+
+	public static String connectGroup(String group_name, String username) {
+		String output = "";
+
+		try {
+
+			// getting room
+			Room roomToJoin = listeGroups.get(group_name);
+
+			// getting room sockets
+			ServerSocket clientSocketToJoin = roomToJoin.serversocket;
+			Socket clientSocket = clientSocketToJoin.accept();
+			SenderServer clientMulticastToListen = roomToJoin.multicast;
+			Logger.debug("EchoServerMultiThreaded_connectRoom",
+					"Connexion from:" + clientSocket.getInetAddress() + " with port " + roomToJoin.port);
+
+			// manage room in another thread
+			ClientThread ct = new ClientThread(clientSocket, clientMulticastToListen, username, group_name);
+			ct.start();
+
+			output = "Room joined !";
+		} catch (Exception e) {
+			Logger.error("EchoServerMultiThreaded_connectRoom", e.getMessage());
+		}
+		return output;
 	}
 
 	/**

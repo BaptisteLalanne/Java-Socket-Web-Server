@@ -108,11 +108,30 @@ public class ClientThread extends Thread {
 						
 						break;
 
+					} else if (line.contains("ConnectGroup")) {
+						Logger.debug("ClientThread_run", "CONNECTGROUP command");
+						Logger.debug("ClientThread_run", "input: " + line);
+						String wanted_group = line.split(" ")[1];
+						output = EchoServerMultiThreaded.connectGroup(wanted_group, wanted_username);
+						// Break ? todo : on garde le thread du main ou non?
+						
+						break;
+
 					} else if (line.contains("joinConversation")) {
 						Logger.debug("ClientThread_run", "JOINCONVERSATION command");
 						Logger.debug("ClientThread_run", "input: " + line);
 						String wantedReceiver = line.split(" ")[1];
 						output = EchoServerMultiThreaded.manageRoom(wanted_username, wantedReceiver);
+						// On renvoie le port
+						socOut.println(output);
+						Logger.debug("ClientThread_run", "output through Socket: " + output);
+						// socOut.println(output);
+
+					} else if (line.contains("joinGroup")) {
+						Logger.debug("ClientThread_run", "JOINGROUP command");
+						Logger.debug("ClientThread_run", "input: " + line);
+						String group_name = line.split(" ")[1];
+						output = EchoServerMultiThreaded.manageGroup(group_name);
 						// On renvoie le port
 						socOut.println(output);
 						Logger.debug("ClientThread_run", "output through Socket: " + output);
