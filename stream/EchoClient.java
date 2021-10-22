@@ -142,6 +142,67 @@ public class EchoClient {
         return joined;
     }
 
+    /**
+     * Join a conversation (a room)
+     */
+    public static boolean joinGroup(String room_name) {
+        /**
+         * 1. Récupérer le port
+         * 2. Se connecter au socket du port
+         */
+
+        boolean joined = false;
+
+        try {
+            Logger.warning("EchoClient_joinGroup", "room_name: " + room_name);
+            String command = "joinGroup " + room_name;
+            socOut.println(command);
+    
+            Logger.warning("EchoClient_joinGroup", "1");
+
+            // Reçoit le nouveau port donné par le serveur pour la conversation
+            int wanted_port = Integer.parseInt(socIn.readLine());
+    
+            Logger.warning("EchoClient_joinGroup", "2");
+
+
+            // Envoie la commande de connexion
+            Logger.warning("EchoClient_joinGroup", "readed: " + "ConnectGroup " + room_name);
+            socOut.println("ConnectGroup " + room_name);
+    
+            // Close le thread de l'ancien multicast
+            if (th_receiver != null) {
+                Logger.warning("EchoClient_joinGroup", "DELETING OLD MUTLICAST THREAD");
+                th_receiver.close();
+            }
+
+            socOut.close();
+            socIn.close();
+            // stdIn.close();
+            echoSocket.close();
+            echoSocket = new Socket(ip_lo, wanted_port);
+    
+            socIn = new BufferedReader(new InputStreamReader(echoSocket.getInputStream()));
+            socOut = new PrintStream(echoSocket.getOutputStream());
+            // stdIn = new BufferedReader(new InputStreamReader(System.in));
+            multicast_private = new MulticastSocket(wanted_port);
+            multicast_private.joinGroup(InetAddress.getByName(ip_mul));
+    
+            // Ouvre un thread pour écouter le multicast
+            th_receiver = new MulticastThread(multicast_private, gui);
+            th_receiver.start();
+            Logger.debug("EchoClient_joinGroup", "Socket: " + echoSocket.toString());
+            Logger.debug("EchoClient_joinGroup", "MulticastSocket: " + multicast_private.toString());
+
+            joined = true;
+
+        } catch (IOException e) {
+            Logger.error("EchoClient_joinConversation", e.getMessage());
+        }
+
+        return joined;
+    }
+
     public static List<String> getOldMessages() {
 
         List<String> old_messages = new ArrayList<String>();

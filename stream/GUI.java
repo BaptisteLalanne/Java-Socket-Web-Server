@@ -51,6 +51,9 @@ public class GUI extends JFrame {
    private DefaultListModel chat_users_model = null;
    private String chat_selected_username = null;
    private Integer chat_selected_index = null;
+   private JList chat_groups_list = null;
+   private DefaultListModel chat_groups_model = null;
+   private String chat_selected_group = null;
 
    private Container container;
 
@@ -81,6 +84,10 @@ public class GUI extends JFrame {
       // setup panels
       initPanelConnection();
       initPanelChat();
+
+      chat_groups_model.addElement("Group1");
+      chat_groups_model.addElement("Group2");
+      chat_groups_model.addElement("Group3");
 
       container.add(pan_connection);
 
@@ -155,9 +162,12 @@ public class GUI extends JFrame {
       chat_users_list.setSelectionMode(ListSelectionModel.SINGLE_INTERVAL_SELECTION);
       chat_users_list.setLayoutOrientation(JList.VERTICAL_WRAP );
       chat_users_list.setVisibleRowCount(-1);
-      chat_users_list.setBounds(10, 10, 130, 450);
+      chat_users_list.setBounds(10, 10, 130, 350);
       chat_users_list.addMouseListener(new MouseAdapter() {
          public void mouseClicked(MouseEvent e) {
+
+            chat_groups_list.clearSelection();
+            chat_selected_group = null;
 
             // check if a new user is selected
             String new_selected = chat_users_list.getSelectedValue().toString();
@@ -180,6 +190,46 @@ public class GUI extends JFrame {
                   // TODO: display error message
                }
             }
+
+         }
+      });
+
+      // create groups model
+      chat_groups_model = new DefaultListModel();
+
+      // create list
+      chat_groups_list = new JList(chat_groups_model);
+      chat_groups_list.setSelectionMode(ListSelectionModel.SINGLE_INTERVAL_SELECTION);
+      chat_groups_list.setLayoutOrientation(JList.VERTICAL_WRAP );
+      chat_groups_list.setVisibleRowCount(-1);
+      chat_groups_list.setBounds(10, 370, 130, 70);
+      chat_groups_list.addMouseListener(new MouseAdapter() {
+         public void mouseClicked(MouseEvent e) {
+
+            chat_users_list.clearSelection();
+            chat_selected_index = null;
+            chat_selected_username = null;
+            resetMessageArea();
+
+            // check if a new group is selected
+            String new_selected = chat_groups_list.getSelectedValue().toString();
+            if (!new_selected.equals(chat_selected_group)) {
+               chat_selected_group = new_selected;
+               Logger.debug("GUI_MouseAdapter", "selected group: " + chat_selected_group);
+
+               
+               boolean joined = EchoClient.joinGroup(chat_selected_group);
+
+               Logger.debug("GUI_MouseAdapter", "joined: " + String.valueOf(joined));
+               if (joined) {
+                  List<String> old_messages = EchoClient.getOldMessages();
+                  resetMessageArea();
+                  showMessages(old_messages);
+               } else {
+                  // TODO: display error message
+               }
+            }
+            
 
          }
       });
@@ -210,6 +260,7 @@ public class GUI extends JFrame {
 
       // add elements to panel
       pan_chat.add(chat_users_list);
+      pan_chat.add(chat_groups_list);
       pan_chat.add(chat_infos_textarea);
       pan_chat.add(chat_input_textfield);
       pan_chat.add(chat_send_button);
